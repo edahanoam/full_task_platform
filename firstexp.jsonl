@@ -1,0 +1,488 @@
+{
+  "participantId": "1234",
+  "totalArticles": 10,
+  "completedArticles": 10,
+  "currentArticleId": null,
+  "articles": [
+    {
+      "articleId": "qualification0-2910",
+      "articleTitle": "9 dead in escalating unrest as demonstrators set fire to police stations, stab regime enforcer",
+      "articleText": "This material may not be published, broadcast, rewritten, or redistributed. ©2026 FOX News Network, LLC. All rights reserved. Quotes displayed in real-time or delayed by at least 15 minutes. Market data provided by Factset . Powered and implemented by FactSet Digital Solutions . Legal Statement . Mutual Fund and ETF data provided by LSEG .\n\nFox News' Greg Palkot reports on the aftermath of the death of Masha Amani after the morality police in Iran beat her to death\n\nAt least nine people have been killed as protests against the Islamist regime in Iran escalated Thursday, with protesters setting fire to police buildings and stabbing a regime enforcer.\n\nThousands of protesters have gathered across the country following the police-custody death of Mahsa Amini, who was arrested by Iranian morality police for not wearing a head covering. Protests have become increasingly violent in major cities like Tehran, where police stations and vehicles have gone up in flames.\n\nProtesters also stabbed a member of the Basij, a pro-government paramilitary organization, according to Reuters. Iranian state media has suggested the death toll could be as high as 17.\n\nThe regime sought to quell the unrest by cutting off access to social media in more than a dozen cities, a move that has precluded the widespread killing of protesters in previous instances of unrest.\n\nProtesters chant slogans during a protest over the death of a woman who was detained by the morality police, in downtown Tehran, Iran. (Associated Press)\n\nIRANIAN PRESIDENT CLAIMS ‘AMERICA TRAMPLED UPON THE NUCLEAR ACCORD,’ WANTS TO REVIVE NUCLEAR DEAL\n\nIranian police opened fire on protesters in the Iran's northeastern region on Wednesday, killing five. Iran's Kurdish minority of roughly 10 million lives in the region, and Amini was Kurdish herself.\n\nKurdish women activists hold up placards during a protest against the death of Iranian Mahsa Amini in Iran, at Martyrs' Square in downtown Beirut, Wednesday, Sept. 21, 2022. (AP Photo/Bilal Hussein)\n\nTwo of the police killings reportedly took place in Amini's hometown of Saqez, according to human rights groups. Two more were killed in the Kurdish city of Divandarreh, and a fifth was reportedly killed in the northeastern city of Dehgolan.\n\nProtesters make fire and block the street during a protest over the death of a woman who was detained by the morality police, in downtown Tehran, Iran. (Associated Press)\n\nIranian authorities have allegedly rejected responsibility for Amini's death, claiming that she simply collapsed while in custody and fell into a coma. Amini's family says they found evidence of beatings on her body when they arrived to the hospital, however, and she soon died of her injuries.\n\nCLICK HERE TO GET THE FOX NEWS APP\n\nMany women demonstrating after Amini's death refused to wear a headscarf, with some burning their hijabs on the street.\n\nAnders Hagstrom is a reporter with Fox News Digital covering national politics and major breaking news events. Send tips to Anders.Hagstrom@Fox.com, or on X: @Hagstrom_Anders.\n\nFox News' Antisemitism Exposed\" newsletter brings you stories on the rising anti-Jewish prejudice across the U.S. and the world.\"\n\nBy entering your email and clicking the Subscribe button, you agree to the Fox News Privacy Policy and Terms of Use , and\n\nagree to receive content and promotional communications from Fox News. You understand that you can\n\nopt-out at any time.\n\nSubscribed\n\nYou've successfully subscribed to this newsletter!\n\nThis material may not be published, broadcast, rewritten, or redistributed. ©2026 FOX News Network, LLC. All rights reserved. Quotes displayed in real-time or delayed by at least 15 minutes. Market data provided by Factset . Powered and implemented by FactSet Digital Solutions . Legal Statement . Mutual Fund and ETF data provided by LSEG .",
+      "validation": {
+        "factualTakeawayCount": 2,
+        "pointOfConcernCount": 1,
+        "meetsMinimumFactualTakeaways": true,
+        "note": null
+      },
+      "annotations": [
+        {
+          "id": "f35fab57-0c4d-4634-bf6c-210cce3ecbd9",
+          "articleId": "qualification0-2910",
+          "type": "comment",
+          "section": "body",
+          "text": "All rights reserved. Quotes",
+          "primaryComment": "first quote",
+          "primaryCommentLabel": "Factual takeaway",
+          "secondaryComment": null,
+          "start": 105,
+          "end": 133,
+          "severity": null,
+          "createdAt": "2026-04-24T15:33:53.881Z"
+        },
+        {
+          "id": "05976732-5ecb-49de-bdef-48e01bdf758e",
+          "articleId": "qualification0-2910",
+          "type": "comment",
+          "section": "body",
+          "text": "Fox News' Antisemitism Exposed\" newsletter brings you stories on the rising anti-Jewish prejudice across the U.S. and the world.\"\n\nBy entering your email and clicking the Subscribe button, you agree to the Fox News Privacy Policy and Terms of Use , and\n\nagree to receive content and promotional communications from Fox News. You understand that you can",
+          "primaryComment": "nonono",
+          "primaryCommentLabel": "Factual takeaway",
+          "secondaryComment": null,
+          "start": 3033,
+          "end": 3381,
+          "severity": null,
+          "createdAt": "2026-04-24T15:34:30.538Z"
+        },
+        {
+          "id": "96daf507-9361-4224-8bfa-ee2430627d5f",
+          "articleId": "qualification0-2910",
+          "type": "issue",
+          "section": "body",
+          "text": "wo more were killed in the Kurdis",
+          "primaryComment": "minot ntoksjdfhjkh",
+          "primaryCommentLabel": "Potential takeaway",
+          "secondaryComment": "minot ntoksjdfhjkh?",
+          "start": 2114,
+          "end": 2147,
+          "severity": 1,
+          "createdAt": "2026-04-24T15:35:28.233Z"
+        }
+      ]
+    },
+    {
+      "articleId": "qualification1-1412",
+      "articleTitle": "FBI informant who lied about the Bidens’ ties to Ukrainian energy company had high-level Russian contacts: DOJ",
+      "articleText": "This material may not be published, broadcast, rewritten, or redistributed. ©2026 FOX News Network, LLC. All rights reserved. Quotes displayed in real-time or delayed by at least 15 minutes. Market data provided by Factset . Powered and implemented by FactSet Digital Solutions . Legal Statement . Mutual Fund and ETF data provided by LSEG .\n\nFox News correspondent David Spunt has the latest on new details from a 'marathon interview' with former Hunter Biden business associate Tony Bobulinski on 'Special Report.'\n\nA former FBI informant charged with lying about a multimillion-dollar bribery scheme between a Ukrainian energy company and the Bidens had contacts with Russian intelligence officials, prosecutors said Tuesday.\n\nIn court filings, prosecutors said Alexander Smirnov admitted during an interview before his arrest last week that \"officials associated with Russian intelligence were involved in passing a story\" about the president’s son, Hunter Biden. They said Smirnov's contacts with Russian officials were recent and extensive, and said Smirnov had planned to meet with one official during an upcoming overseas trip.\n\nThey said Smirnov has had numerous contacts with a person he described as the \"son of a former high-ranking government official\" and \"someone with ties to a particular Russian intelligence service.\" They said there is a serious risk that Smirnov could flee overseas to avoid facing trial.\n\nProsecutors revealed the alleged contact as they urged a judge to keep Smirnov behind bars while he awaits trial.\n\nHunter Biden, son of U.S. President Joe Biden, departs a House Oversight Committee meeting at Capitol Hill on January 10, 2024 in Washington, DC. (Kent Nishimura/Getty Images)\n\nSmirnov, who holds dual U.S.-Israeli citizenship, is charged with falsely reporting to the FBI in June 2020 that executives associated with the Ukrainian energy company Burisma paid Hunter and Joe Biden $5 million each in 2015 or 2016.\n\nSmirnov had only routine business dealings with the company starting in 2017 and made the bribery allegations after he \"expressed bias\" against Joe Biden while he was a presidential candidate, prosecutors said. Special Counsel David Weiss said Smirnov’s lies were aimed at affecting the 2024 presidential election.\n\nSmirnov is charged with making a false statement and creating a false and fictitious record. The charges were filed in Los Angeles, where he lived for 16 years before relocating to Las Vegas two years ago.\n\nSmirnov was due in court later Tuesday in Las Vegas. He has been in custody at a facility in rural Pahrump, about an hour drive west of Las Vegas, since his arrest last week at the airport while returning from overseas.\n\nPresident Joe Biden's son Hunter Biden has reportedly told people that he may have to \"flee\" the country if Trump wins in 2024. (Kevin Dietsch/Getty Images)\n\nU.S. Magistrate Judge Daniel Albregts allowed Smirnov to be released from custody on electronic GPS monitoring while he awaits trial. He must stay in Clark County, Nevada, and is prohibited from applying for a new passport.\n\nBefore his arrest, Smirnov had been scheduled to leave the U.S. for a months-long, multi-country trip that – by his own admission – involved meetings with officials of foreign intelligence agencies and governments, prosecutors said.\n\nAhead of Tuesday's hearing, Defense attorneys David Chesnoff and Richard Schonfeld had argued for Smirnov's release while he awaits trial \"so he can effectively fight the power of the government.\"\n\nSmirnov's claims have been central to the Republican effort in Congress to investigate the president and his family, and helped spark what is now a House impeachment inquiry into Biden. Democrats called for an end to the probe after the indictment came down last week, while Republicans distanced the inquiry from Smirnov's claims and said they would continue to \"follow the facts.\"\n\nCLICK HERE TO GET THE FOX NEWS APP\n\nHunter Biden is expected to give a deposition next week.\n\nThe Burisma allegations became a flashpoint in Congress as Republicans pursuing investigations of President Biden and his family demanded the FBI release the unredacted form documenting the allegations. They acknowledged they couldn't confirm if the allegations were true.\n\nFox News' David Spunt and The Associated Press contributed to this report.\n\nBradford Betz is a Fox News Digital breaking reporter covering crime, political issues, and much more.\n\nGet the latest updates from the 2024 campaign trail, exclusive interviews and more Fox News politics content.\n\nBy entering your email and clicking the Subscribe button, you agree to the Fox News Privacy Policy and Terms of Use , and\n\nagree to receive content and promotional communications from Fox News. You understand that you can\n\nopt-out at any time.\n\nSubscribed\n\nYou've successfully subscribed to this newsletter!\n\nThis material may not be published, broadcast, rewritten, or redistributed. ©2026 FOX News Network, LLC. All rights reserved. Quotes displayed in real-time or delayed by at least 15 minutes. Market data provided by Factset . Powered and implemented by FactSet Digital Solutions . Legal Statement . Mutual Fund and ETF data provided by LSEG .",
+      "validation": {
+        "factualTakeawayCount": 2,
+        "pointOfConcernCount": 2,
+        "meetsMinimumFactualTakeaways": true,
+        "note": null
+      },
+      "annotations": [
+        {
+          "id": "2690970c-d5c5-4838-a9a7-923e471509ec",
+          "articleId": "qualification1-1412",
+          "type": "issue",
+          "section": "title",
+          "text": "FBI informant who lied about the Bidens’ ties to Ukrainian energy company had high-level Russian contacts: DOJ",
+          "primaryComment": "FBI informant who lied about the Bidens’ ties to Ukrainian energy company had high-level Russian contacts: DOJ",
+          "primaryCommentLabel": "Potential takeaway",
+          "secondaryComment": "24$598ERdkjszfhjkasdfh",
+          "start": 0,
+          "end": 110,
+          "severity": 5,
+          "createdAt": "2026-04-24T15:37:31.842Z"
+        },
+        {
+          "id": "e10aa529-be69-4fb5-8fcf-81d2ae6dce4c",
+          "articleId": "qualification1-1412",
+          "type": "issue",
+          "section": "body",
+          "text": "Ahead of Tuesday's hearing, Defense attorneys David Chesnoff and Richard Schonfeld had argued for Smirnov's release while he awaits trial \"so he can effectively fight the power of the government.\"\n\nSmirnov's claims have been central to the Republican effort in Congress to investigate the president and his family, and helped spark what is now a House impeachment inquiry into Biden. Democrats called for an end to the probe after the indictment came down last week, while Republicans distanced the inquiry from Smirnov's claims and said they would continue to \"follow the facts.\"\n\nCLICK HERE TO GET THE FOX NEWS APP\n\nHunter Biden is expected to give a deposition next week.\n\nThe Burisma allegations became a flashpoint in Congress as Republicans pursuing investigations of President Biden and his family demanded the FBI release the unredacted form documenting the allegations. They acknowledged they couldn't confirm if the allegations were true.",
+          "primaryComment": "fg",
+          "primaryCommentLabel": "Potential takeaway",
+          "secondaryComment": "%%%%",
+          "start": 3289,
+          "end": 4229,
+          "severity": 4,
+          "createdAt": "2026-04-24T15:38:26.220Z"
+        },
+        {
+          "id": "bd46cbfb-36c2-4d61-ad6d-eafbf5dbd889",
+          "articleId": "qualification1-1412",
+          "type": "comment",
+          "section": "body",
+          "text": "Hunter Biden",
+          "primaryComment": "hun",
+          "primaryCommentLabel": "Factual takeaway",
+          "secondaryComment": null,
+          "start": 1530,
+          "end": 1542,
+          "severity": null,
+          "createdAt": "2026-04-24T15:40:43.108Z"
+        },
+        {
+          "id": "6d546e99-031e-4f21-a569-662c0b3e1f74",
+          "articleId": "qualification1-1412",
+          "type": "comment",
+          "section": "body",
+          "text": "correspondent",
+          "primaryComment": "jhfkjdfhdkjfhdkfjdhskjhlkjdfhlkjfhalkjdfhklajdfhakljdfhajkdfhlkjdfhlkjdhjkhalk",
+          "primaryCommentLabel": "Factual takeaway",
+          "secondaryComment": null,
+          "start": 350,
+          "end": 364,
+          "severity": null,
+          "createdAt": "2026-04-24T15:41:52.419Z"
+        }
+      ]
+    },
+    {
+      "articleId": "qualification2-1367",
+      "articleTitle": "Everything you need to know about Super Tuesday 2024 as Trump, Biden look to rack up delegates",
+      "articleText": "Switch between CA and NY editions here.\n\nSuper Tuesday is shaping up to be yet another suspense-free day of presidential politics as both Donald Trump and President Biden prepare to run up the delegate scoreboard against their competitors.\n\nFifteen Republican primaries and caucuses will take place Tuesday, with Democrats in 16 states and territories doing the same.\n\nA total of 865 delegates are at stake on the GOP side, about a third of the total that will be doled out before this summer’s Republican National Convention in Milwaukee.\n\nThere are also key races to watch downballot, with hotly contested Democratic Senate primaries in California and Texas to be decided\n\nHere’s what you need to know about Super Tuesday:\n\nFor decades, presidential nominating contests have featured one day in which the greatest number of states vote. The term “Super Tuesday” has been used since at least the mid-1970s, according to the National Constitution Center .\n\nSpecifics of how the day goes down vary from year to year. In 2016, 11 states held Republican primaries or caucuses on March 1 — the official Super Tuesday — but six more states, including delegate-rich Florida  and Ohio, held their contests two weeks later on March 15, promoting the media to christen it “Super Tuesday II.”\n\nOn that occasion, the contests winnowed the Republican field to a three-person race among Trump, US Sen. Ted Cruz (R-Texas) and Ohio Gov. John Kasich.\n\nThis time around, the only suspense is whether Trump will sweep all 15 contests from his last remaining rival, former South Carolina Gov. Nikki Haley.\n\nFor this election cycle, Super Tuesday is on March 5. After Tuesday’s contests, no date on the calendar will feature more than five Republican primaries or caucuses.\n\nThis election cycle, Super Tuesday races will award 874 or roughly 36% of the total 2,429 Republican delegates. As of Monday, Trump had 244 delegates compared to Haley’s 43 delegates.\n\nTo win the nomination, Trump will need to cross 1,215 delegates.\n\nOn the Democratic side, 1,420 — or 36% of the 3,934 available delegates — will be up for grabs. Biden has 206 delegates as of Monday afternoon and needs 1,968 to lock down the nomination.\n\nAs the incumbent, Biden’s fiercest competition is “uncommitted,” which received two delegates following last week’s Michigan primary.\n\nBoth Republicans and Democrats will cast votes in Alabama, Arkansas, California, Colorado, Maine, Massachusetts, Minnesota, North Carolina, Oklahoma, Tennessee, Texas, Utah, Vermont and Virginia.\n\nSeparately, Republicans will also vote in the Alaska primary, while Democrats will vote in the American Samoa caucus.\n\nTuesday is also the last day for Democratic voters in Iowa to submit their nomination ballots by mail.\n\nYes. Even though Maine and Colorado moved to jettison him from their respective primary ballots, the US Supreme Court ruled unanimously Monday that states cannot declare candidates ineligible for federal office.\n\nThe former US ambassador to the United Nations has played coy about her plans after Tuesday.\n\n“I’ve always said this needs to be competitive. As long as we are competitive, as long as we are showing that there is a place for us, I’m going to continue to fight,” she told NBC’s “Meet the Press” in an interview that aired Sunday.\n\nCritics, including top Trump confidants, have argued she hasn’t been competitive. At this point, Trump has won every race he’s vied in except Washington, DC, where Haley won handily Sunday evening.\n\nSome have speculated that Haley will hang in until Trump crosses the 1,215 threshold.\n\nMany analysts expect Trump to cross the 1,215 threshold sometime this month. In a memo released last month , Trump’s team predicted he’d hit that milestone by around March 12 — when Georgia, Hawaii, Mississippi and Washington state hold their contests.\n\nOnce that happens, Trump’s nomination is expected to be formally announced at the Republican National Convention, which will be held July 15-18 in Milwaukee.\n\nDespite his incumbency and lack of a serious primary threat, Biden will face another test on Super Tuesday.\n\nDisgruntled progressive activists have been mobilizing in key states to gin up an “uncommitted” vote in a bid to blemish his political standing in protest of his support for Israel in its war against Hamas.\n\nIn Michigan, which has the largest Arab population of any state in the nation, over 100,000 — or 13% of participants — voted “uncommitted” in the primary.\n\nFor comparison, in 2012, then-President Barack Obama faced a protest “uncommitted” vote that accumulated just under 21,000 votes — or 10.7% support.\n\nActivists have been scrambling to replicate and expand upon those results in future contests. Groups such as the Democratic Socialists of America have backed those endeavors.\n\nLongshot candidate Rep. Dean Phillips (D-Minn.) will face voters in his home state on Tuesday. At the moment, he has zero delegates and he’s not expected to get the benefit of home cooking.\n\nRecently, fellow longshot contender and self-help guru Marianne Williamson unsuspended her campaign after a surprise showing in which she eclipsed Phillips in Michigan.\n\nCalifornia will hold its open primary Tuesday for the Senate seat held by the late Sen. Dianne Feinstein (D-Calif.). Her seat is being temporarily filled by Laphonza Butler.\n\nFor months, Democratic Reps. Adam Schiff, Katie Porter and Barbara Lee have been jockeying in one of the most expensive Senate primary contests of the cycle.\n\nFormer Los Angeles Dodgers and San Diego Padres first baseman Steve Garvey is the top-polling contender on the Republican side. Under California’s system, the top two finishers advance to the general election regardless of party affiliation.\n\nRepublicans will hope Garvey can crack the top two, if only to prevent the prospect of an all-Democrat general election that sees stepped-up turnout among liberal voters in downballot races.\n\nThere will also be key law-and-order votes in San Francisco and Los Angeles on Super Tuesday.\n\nLos Angeles County District Attorney George Gascon is facing a primary challenge from 11 opponents, most of whom accuse him of being too soft on crime. San Francisco Mayor London Breed, meanwhile, is championing a ballot measure to bolster police powers.\n\nNorth Carolina will hold its gubernatorial primary to see whether Democratic Attorney General Josh Stein and Republican Lt. Gov. Mark Robinson lock down their respective party nod.\n\nIn Texas, Attorney General Ken Paxton, who survived an impeachment effort last year, is seeking to unseat dozens of Republican legislators who moved to oust him.\n\nTuesday night will show whether his efforts to get payback succeed.\n\nAlso in Texas, Democratic Rep. Colin Allred, state Sen. Roland Gutierrez and state Rep. Carl Sherman will square off for the right to face Cruz in November.\n\nImmediately after Super Tuesday, Democrats will vote in the Hawaii primary on Wednesday and Republicans will partake in the American Samoan caucus Friday.\n\nAfter the March 12 contests, Republicans in the Northern Mariana Islands and Guam will caucus on the 15th and 16th, respectively.\n\nThen, on March 19, Republicans and Democrats will hold primaries in Arizona, Florida, Illinois, Kansas and Ohio.",
+      "validation": {
+        "factualTakeawayCount": 2,
+        "pointOfConcernCount": 0,
+        "meetsMinimumFactualTakeaways": true,
+        "note": "There are no points of concern in this article according to the saved annotations."
+      },
+      "annotations": [
+        {
+          "id": "9e8fc9c4-b414-44d9-a6ce-1be02427be1f",
+          "articleId": "qualification2-1367",
+          "type": "comment",
+          "section": "body",
+          "text": "Super",
+          "primaryComment": "ssss",
+          "primaryCommentLabel": "Factual takeaway",
+          "secondaryComment": null,
+          "start": 39,
+          "end": 45,
+          "severity": null,
+          "createdAt": "2026-04-24T15:42:39.600Z"
+        },
+        {
+          "id": "d7713948-d434-40c4-989f-458a1ef478e6",
+          "articleId": "qualification2-1367",
+          "type": "comment",
+          "section": "body",
+          "text": "March 5.",
+          "primaryComment": "s",
+          "primaryCommentLabel": "Factual takeaway",
+          "secondaryComment": null,
+          "start": 1613,
+          "end": 1622,
+          "severity": null,
+          "createdAt": "2026-04-24T15:42:59.508Z"
+        }
+      ]
+    },
+    {
+      "articleId": "qualification3-3552",
+      "articleTitle": "Biden gives bizarre answer on abortion after meeting with pope, says Francis 'happy' he's a 'good Catholic'",
+      "articleText": "President Joe Biden delivered a perplexing answer Friday about whether he and Pope Francis discussed abortion during their 90-minute meeting at the Vatican.\n\n“No, it didn’t. It came up,” Biden told reporters when asked if “the issue of abortion [came] up at all” during his meeting with the pope. “We just talked about the fact he was happy that I was a good Catholic, and I should keep receiving communion.”\n\nUS MEDIA BARRED FROM BIDEN’S VATICAN MEETING WITH POPE FRANCIS\n\nBiden’s pro-abortion rights stance has rattled some Catholics in the United States, including 168 bishops who sought to block the president from receiving communion. The Vatican shot down that suggestion in June, though Pope Francis has not publicly commented on the subject.\n\nU.S. reporters, photographers, and television crews traveling with the president were barred from his meeting with the pope, and the Vatican supplied a heavily edited video recapping the event. Senior administration officials characterized the meeting as lighthearted.\n\n“The engagement between the two was very warm when the delegation arrived in the room,” one White House official said of the lengthy visit. “There was laughter and clear rapport between President Biden and Pope Francis.”\n\nThe White House’s readout of the face-to-face meeting, the second between a Catholic president and the pope, noted that “President Biden thanked His Holiness for his advocacy for the world’s poor and those suffering from hunger, conflict, and persecution.” He also “lauded Pope Francis’ leadership in fighting the climate crisis, as well as his advocacy to ensure the pandemic ends for everyone through vaccine sharing and an equitable global economic recovery,” according to the report.\n\nDuring the meeting, Biden gifted the pope a presidential challenge coin. He called Francis the “most significant warrior for peace I’ve ever met,” adding that his late son, Beau Biden, would have wanted him to give the pope the gift.\n\nCLICK HERE TO READ MORE FROM THE WASHINGTON EXAMINER\n\nBiden awkwardly tries joking with Pope Francis about him buying drinks the next time they meet pic.twitter.com/0UV43jNRmC\n\n— Tom Elliott (@tomselliott) October 29, 2021",
+      "validation": {
+        "factualTakeawayCount": 2,
+        "pointOfConcernCount": 1,
+        "meetsMinimumFactualTakeaways": true,
+        "note": null
+      },
+      "annotations": [
+        {
+          "id": "52813f8b-6102-4be7-b28c-ab4c4a3e06c9",
+          "articleId": "qualification3-3552",
+          "type": "comment",
+          "section": "title",
+          "text": "'happy' he's a 'good Catholic'",
+          "primaryComment": "cause i am happy",
+          "primaryCommentLabel": "Factual takeaway",
+          "secondaryComment": null,
+          "start": 77,
+          "end": 107,
+          "severity": null,
+          "createdAt": "2026-04-24T15:43:51.051Z"
+        },
+        {
+          "id": "13cf546c-483c-4d13-9d52-766d5a44d5ac",
+          "articleId": "qualification3-3552",
+          "type": "comment",
+          "section": "body",
+          "text": "“No, it didn’t. It came up,” Biden told reporters when asked if “the issue of abortion [came] up at all” during his meeting with the pope. “We just talked about the fact he was happy that I was a good Catholic, and I should keep receiving communion.”",
+          "primaryComment": "sjdh",
+          "primaryCommentLabel": "Factual takeaway",
+          "secondaryComment": null,
+          "start": 156,
+          "end": 406,
+          "severity": null,
+          "createdAt": "2026-04-24T15:44:22.373Z"
+        },
+        {
+          "id": "4056b591-64f4-467e-a144-8e710ed023eb",
+          "articleId": "qualification3-3552",
+          "type": "issue",
+          "section": "body",
+          "text": "one White",
+          "primaryComment": "cccchjdg",
+          "primaryCommentLabel": "Potential takeaway",
+          "secondaryComment": "cx?????????",
+          "start": 1099,
+          "end": 1109,
+          "severity": 2,
+          "createdAt": "2026-04-24T15:45:12.866Z"
+        }
+      ]
+    },
+    {
+      "articleId": "qualification4-1868",
+      "articleTitle": "The race is on: Who could replace McCarthy as speaker?",
+      "articleText": "A fter a historic vote to remove Rep. Kevin McCarthy (R-CA) as speaker, GOP lawmakers are scouring their conference to see who could replace the California Republican as the top House leader .\n\nLawmakers voted 216-210 to remove McCarthy from his position after eight Republicans joined all Democrats in a historic rebuke to GOP leadership, leaving the House at a standstill until lawmakers can elect a new speaker. McCarthy later announced he would not seek reelection as speaker, sending Republicans into a scramble to find a new party leader, with several names being floated as options.\n\nDEMOCRATS HAVE A CHOICE TO MAKE ON MCCARTHY’S SPEAKERSHIP TOO\n\nRepublicans will hold a candidate forum next Tuesday before deciding on who to nominate, with the first speakership vote expected as soon as the following Wednesday.\n\nHere’s who could be eyeing the speakership:\n\nSteve Scalise\n\nHouse Majority Leader Steve Scalise (R-LA) has been floated as one of the most obvious replacements to McCarthy, especially because the Louisiana Republican has served as the No. 2 Republican over the last 10 months.\n\nScalise is reportedly considering the position, and several House members have called the majority leader to pledge their support, a source familiar confirmed to the Washington Examiner . Several lawmakers, including Rep. Matt Gaetz (R-FL), who introduced the motion to vacate McCarthy, have said they’d support Scalise should he run.\n\n“I think the world of Steve Scalise. I think he’d make a phenomenal speaker,” Gaetz told reporters after the vote.\n\nWhen asked if he plans on running for speaker, House Majority Whip Tom Emmer (R-MN) said, “I think Steve Scalise would make a great speaker.”\n\nEmmer is considering running as majority leader if Scalise is elected speaker, multiple sources confirmed to the Washington Examiner.\n\nKevin Hern\n\nMembers have also expressed interest in Rep. Kevin Hern (R-OK) running for speaker, and he told the Washington Examiner on Tuesday he was considering it.\n\nHern has called several members to gauge their interest in supporting him for speaker, according to a source familiar. Hern also plans on attending the Texas GOP delegation lunch on Wednesday to speak with members considering a run for speaker.\n\nJim Jordan\n\nRep. Jim Jordan (R-OH) confirmed he was running for speaker on Wednesday, telling reporters his key priority would be to unite the conference — which he says he has confidence in doing.\n\n“I think the key is to unite in the conference. I’ve had a lot of people reach out to us, asking me to do it, because I think we can,” Jordan said. “We’ll see if that happens, but I think I can.”\n\nRep. Thomas Massie (R-KY) said Jordan would be his “first choice” should he run, and Gaetz has also said Jordan would be a good choice.\n\nCLICK HERE TO READ MORE FROM THE WASHINGTON EXAMINER\n\nOther names in play\n\nSome lawmakers have floated other names they would consider as speaker, including Emmer and Rep. Mark Green (R-TN). Emmer has already said he would not consider a bid.\n\nA handful of members have suggested other names, with Reps. Troy Nehls (R-TX), Marjorie Taylor Greene (R-GA), and Greg Steube (R-FL) saying they would nominate former President Donald Trump as speaker. One does not need to be a House lawmaker in order to be elected as speaker, although it’s unlikely a nonmember would be elected to the position.",
+      "validation": {
+        "factualTakeawayCount": 2,
+        "pointOfConcernCount": 0,
+        "meetsMinimumFactualTakeaways": true,
+        "note": "There are no points of concern in this article according to the saved annotations."
+      },
+      "annotations": [
+        {
+          "id": "ccc43978-7f89-41fc-b2a7-6e362eb09945",
+          "articleId": "qualification4-1868",
+          "type": "comment",
+          "section": "body",
+          "text": "A fter",
+          "primaryComment": "A fter",
+          "primaryCommentLabel": "Factual takeaway",
+          "secondaryComment": null,
+          "start": 0,
+          "end": 6,
+          "severity": null,
+          "createdAt": "2026-04-24T15:45:45.573Z"
+        },
+        {
+          "id": "03788de6-83f9-4ad6-9365-d4587e5060bb",
+          "articleId": "qualification4-1868",
+          "type": "comment",
+          "section": "body",
+          "text": "a historic",
+          "primaryComment": "a historic",
+          "primaryCommentLabel": "Factual takeaway",
+          "secondaryComment": null,
+          "start": 7,
+          "end": 17,
+          "severity": null,
+          "createdAt": "2026-04-24T15:45:56.912Z"
+        }
+      ]
+    },
+    {
+      "articleId": "qualification5-1962",
+      "articleTitle": "Florida judge rules DeSantis’ redistricting map unconstitutional over impact on Black voters",
+      "articleText": "This material may not be published, broadcast, rewritten, or redistributed. ©2026 FOX News Network, LLC. All rights reserved. Quotes displayed in real-time or delayed by at least 15 minutes. Market data provided by Factset . Powered and implemented by FactSet Digital Solutions . Legal Statement . Mutual Fund and ETF data provided by LSEG .\n\nFox News' Anita Vogel shares how viewers can contribute to Hurricane Idalia relief efforts.\n\nThe Florida redistricting plan that Gov. Ron DeSantis supports is unconstitutional and cannot be used, a state judge ruled Saturday.\n\nCircuit Judge J. Lee Marsh ruled that the redistricting plan diminishes the ability fo Black voters to elect their chosen candidates, particularly in the state's northern region. Marsh's order mandates that the state government begin producing a new map for congressional elections, though DeSantis' administration is likely to appeal the decision.\n\nCentral to the case is former U.S. Rep. Al Lawson, D-Fla., whose district splintered under the new map. The lawmaker, who is black, had previously enjoyed support from a wide base of Black voters in the district, but he lost his race by 20 points under the new map.\n\nRepublicans in the Florida legislature had previously introduced a redistricting map that likely would have allowed Lawson to win re-election, but the DeSantis administration put forward its own version of the map and vowed to veto any other.\n\nThe Florida redistricting plan that Gov. Ron DeSantis supports is unconstitutional and cannot be used, a state judge ruled Saturday. (Brandon Bell/Getty Images)\n\nThe legal battle comes as DeSantis manages disaster response from Hurricane Idalia as well as a 2024 presidential campaign.\n\nThe governor snubbed President Biden during his visit to Florida this weekend. Biden's administration had indicated that they thought the pair would meet to survey disaster recovery efforts on Saturday, but no such meeting occurred.\n\nTROPICAL STORM IDALIA IMPACTS NORTH CAROLINA AFTER BARRELING THROUGH SOUTHEASTERN STATES\n\n\"In these rural communities, and so soon after impact, the security preparations alone that would go into setting up such a meeting would shut down ongoing recovery efforts,\" said DeSantis spokesman Jeremy Redfern.\n\nThe governor snubbed President Biden during his visit to Florida this weekend. Biden's administration had indicated that they thought the pair would meet to survey disaster recovery efforts on Saturday, but no such meeting occurred. (Anna Moneymaker/Getty Images)\n\nDESANTIS SAYS ‘SIGNIFICANT DAMAGE’ IN FLORIDA FROM HURRICANE IDALIA, DOZENS OF RESCUES\n\nThe president announced his intention to visit Florida during a press conference from the Washington, D.C., headquarters of the Federal Emergency Management Agency (FEMA).\n\nBiden has demanded Congress pass more disaster relief funding as soon as possible — upping his original request of $12 billion to $16 billion. (Joe Raedle/Getty Images)\n\nCLICK HERE TO GET THE FOX NEWS APP\n\n\"There was just no indication that he was not going to be there,\" White House press secretary Karine Jean-Pierre said of DeSantis on Saturday.\n\nFox News' Timothy Nerozzi and the Associated Press contributed to this report.\n\nAnders Hagstrom is a reporter with Fox News Digital covering national politics and major breaking news events. Send tips to Anders.Hagstrom@Fox.com, or on X: @Hagstrom_Anders.\n\nGet the latest updates from the 2024 campaign trail, exclusive interviews and more Fox News politics content.\n\nBy entering your email and clicking the Subscribe button, you agree to the Fox News Privacy Policy and Terms of Use , and\n\nagree to receive content and promotional communications from Fox News. You understand that you can\n\nopt-out at any time.\n\nSubscribed\n\nYou've successfully subscribed to this newsletter!\n\nThis material may not be published, broadcast, rewritten, or redistributed. ©2026 FOX News Network, LLC. All rights reserved. Quotes displayed in real-time or delayed by at least 15 minutes. Market data provided by Factset . Powered and implemented by FactSet Digital Solutions . Legal Statement . Mutual Fund and ETF data provided by LSEG .",
+      "validation": {
+        "factualTakeawayCount": 2,
+        "pointOfConcernCount": 0,
+        "meetsMinimumFactualTakeaways": true,
+        "note": "There are no points of concern in this article according to the saved annotations."
+      },
+      "annotations": [
+        {
+          "id": "6305e86b-7870-47f0-9791-bd443a2bc343",
+          "articleId": "qualification5-1962",
+          "type": "comment",
+          "section": "body",
+          "text": "This",
+          "primaryComment": "This",
+          "primaryCommentLabel": "Factual takeaway",
+          "secondaryComment": null,
+          "start": 0,
+          "end": 5,
+          "severity": null,
+          "createdAt": "2026-04-24T15:46:11.471Z"
+        },
+        {
+          "id": "45773c4c-afe9-4d25-b27f-5ff7cdd12b53",
+          "articleId": "qualification5-1962",
+          "type": "comment",
+          "section": "body",
+          "text": "material",
+          "primaryComment": "material",
+          "primaryCommentLabel": "Factual takeaway",
+          "secondaryComment": null,
+          "start": 5,
+          "end": 14,
+          "severity": null,
+          "createdAt": "2026-04-24T15:46:15.117Z"
+        }
+      ]
+    },
+    {
+      "articleId": "qualification6-2906",
+      "articleTitle": "Moscow-held regions of Ukraine in ‘sham’ vote to join Russia",
+      "articleText": "Switch between CA and NY editions here.\n\nRussia’s sham elections began in occupied Ukrainian territory Friday — long predicted “referendums” as to whether the pieces of sovereign Ukraine should be considered Moscow’s.\n\nThe votes — orchestrated by the Kremlin as Russia loses territory on the battlefield — are the first steps in an expected annexation of Ukrainian territory, and have widely been denounced as frauds by Kyiv and the West.\n\nVoting began Friday in the occupied provinces of Luhansk and Kherson, as well as in the portions of Donetsk and Zaporizhzhia provinces that are under Russian control.\n\n“Voting has started in the referendum on Zaporizhzhia region becoming a part of Russia as a constituent entity of the Russian Federation!” said Vladimir Rogov, an official in Moscow’s puppet regime in the province. “We are coming home!”\n\nMeanwhile, Ukraine’s exiled leaders from the occupied regions expressed concern for their citizens ahead of the vote.\n\n“Today, the best thing for the people of Kherson would be not to open their doors,” said Yuriy Sobolevsky, an exiled Ukrainian leader from the Kherson province.\n\nIn the Luhansk city of Starobilsk, 30 miles northeast of Severodonetsk, Russians were forcing residents out of their homes to vote, according to Serhiy Gaidai, the Ukrainian head of that province.\n\nCloser to the Russian border in Bilovodsk, one businessman reportedly told employees anyone who failed to vote would be fired and reported to occupation security services.\n\nGaidai called the votes “elections without elections,” and said occupying troops were forcing the votes in residents homes or yards without privacy.\n\n“The mood of the Russians is panicky because they were not ready to carry out so quickly this so-called referendum, there is no support, there’s not enough people,” Sobolevsky said.\n\nThe forced votes come after the majority of the peacetime population has fled the occupied regions, and amid reports of the torture and imprisonment of suspected Kyiv loyalists.\n\nThe votes, which are expected to go Russia’s way, have been denounced as shams.\n\nThe Organization for Security and Cooperation in Europe, which monitors regional elections, has declared the elections meaningless, saying they conform to neither Ukrainian law nor international election standards.\n\nA similar referendum was used in 2014 as a pretext for Russia’s annexation of the Crimean peninsula, which the international community still regards as part of Ukraine.\n\nFollowing that annexation, sham referenda were held in smaller regions of Luhansk and Donetsk to declare independent “people’s republics” around those provinces’ eponymous capital cities.\n\nRussia formally recognized the Donetsk and Luhansk People’s Republics in the opening hours of February’s invasion.\n\nThe votes are seen as a prelude to another round of annexation, which would in turn allow Moscow to claim its unprovoked invasion is a war in defense of Russian nationals.\n\n“Encroachment onto Russian territory is a crime which allows you to use all the forces of self-defense,” Dmitry Medvedev, the deputy head of Russia’s security council, said on social media earlier this week.",
+      "validation": {
+        "factualTakeawayCount": 2,
+        "pointOfConcernCount": 0,
+        "meetsMinimumFactualTakeaways": true,
+        "note": "There are no points of concern in this article according to the saved annotations."
+      },
+      "annotations": [
+        {
+          "id": "c552cf98-5dfc-49c1-90b7-eb4fd7adeb7c",
+          "articleId": "qualification6-2906",
+          "type": "comment",
+          "section": "body",
+          "text": "Switch",
+          "primaryComment": "Switch",
+          "primaryCommentLabel": "Factual takeaway",
+          "secondaryComment": null,
+          "start": 0,
+          "end": 7,
+          "severity": null,
+          "createdAt": "2026-04-24T15:46:28.849Z"
+        },
+        {
+          "id": "43fec38d-f813-4abc-807b-9a5a42bc19bf",
+          "articleId": "qualification6-2906",
+          "type": "comment",
+          "section": "body",
+          "text": "between",
+          "primaryComment": "between",
+          "primaryCommentLabel": "Factual takeaway",
+          "secondaryComment": null,
+          "start": 7,
+          "end": 15,
+          "severity": null,
+          "createdAt": "2026-04-24T15:46:33.977Z"
+        }
+      ]
+    },
+    {
+      "articleId": "qualification7-1811",
+      "articleTitle": "Trump says electing Emmer as speaker would be ‘tragic mistake’",
+      "articleText": "F ormer President Donald Trump came out against Speaker-Designate Tom Emmer (R-MN) shortly after the majority leader won the speaker nomination , calling on House Republicans not to vote for him on the floor .\n\n“I have many wonderful friends wanting to be Speaker of the House, and some are truly great warriors. RINO Tom Emmer, who I do not know well, is not one of them,” Trump said in a Truth Social post, referring to Emmer as a “Republican in Name Only.” “Voting for a globalist RINO like Tom Emmer would be a tragic mistake!”\n\nGOP STATE OFFICIALS PRESSURE PROXY ADVISORY COMPANIES IN ‘FIGHT’ AGAINST ESG\n\nIn the post, Trump accused Emmer of “never respect[ing] the Power of a Trump endorsement,” arguing he is out of touch with GOP voters.\n\n“I believe he has now learned his lesson, because he is saying that he is Pro-Trump all the way, but who can ever be sure?” Trump wrote. “Has he only changed because that’s what it takes to win? The Republican Party cannot take that chance, because that’s not where the America First voters are.”\n\nThe scathing statement comes one day after Trump said he would try to stay out of the House speaker’s race and not make an endorsement for any of the eight candidates. Trump and Emmer also spoke over the weekend, according to a source familiar with the situation.\n\nHowever, the former president unleashed the social media tirade shortly after Emmer won the party nomination in a closed-door vote on Tuesday, during which several GOP lawmakers have already come out against his candidacy.\n\nTrump’s opposition also comes after several allies in the former president’s orbit have pushed against Emmer’s candidacy, citing his vote to certify President Joe Biden’s victory in the 2020 election and other instances, according to a source.\n\nEmmer won the nomination in a 117-97 vote on Tuesday against Rep. Mike Johnson (R-LA), giving him a slim victory over the Louisiana Republican. However, the party conducted a voice roll call to see how many lawmakers would support Emmer’s nomination, with roughly 26 Republicans saying they wouldn’t vote for him on the floor.\n\nEmmer met with several of those holdouts after the roll-call vote in an attempt to ease any concerns before the Republicans are set to reconvene around 4 p.m. However, it’s not yet clear what the timeline moving forward to elect a speaker will look like.\n\nCLICK HERE TO READ MORE FROM THE WASHINGTON EXAMINER\n\nA handful of GOP lawmakers, such as Rep. Troy Nehls (R-TX), have already voiced concerns that Emmer won’t have the support needed to secure the speaker’s gavel.\n\n“Here we are again, right back to where we started,” he said. “So now what are we going to do?”",
+      "validation": {
+        "factualTakeawayCount": 2,
+        "pointOfConcernCount": 0,
+        "meetsMinimumFactualTakeaways": true,
+        "note": "There are no points of concern in this article according to the saved annotations."
+      },
+      "annotations": [
+        {
+          "id": "28edf18f-c7dc-4554-a0cb-c7d2c3f9505b",
+          "articleId": "qualification7-1811",
+          "type": "comment",
+          "section": "body",
+          "text": "F ormer",
+          "primaryComment": "F ormer",
+          "primaryCommentLabel": "Factual takeaway",
+          "secondaryComment": null,
+          "start": 0,
+          "end": 7,
+          "severity": null,
+          "createdAt": "2026-04-24T15:46:48.168Z"
+        },
+        {
+          "id": "a2f6e6c0-11fa-4718-93b6-da564279a2c7",
+          "articleId": "qualification7-1811",
+          "type": "comment",
+          "section": "body",
+          "text": "President",
+          "primaryComment": "President",
+          "primaryCommentLabel": "Factual takeaway",
+          "secondaryComment": null,
+          "start": 8,
+          "end": 18,
+          "severity": null,
+          "createdAt": "2026-04-24T15:46:54.119Z"
+        }
+      ]
+    },
+    {
+      "articleId": "qualification8-3017",
+      "articleTitle": "FBI seized classified records from Mar-a-Lago during search of Trump residence",
+      "articleText": "This material may not be published, broadcast, rewritten, or redistributed. ©2026 FOX News Network, LLC. All rights reserved. Quotes displayed in real-time or delayed by at least 15 minutes. Market data provided by Factset . Powered and implemented by FactSet Digital Solutions . Legal Statement . Mutual Fund and ETF data provided by LSEG .\n\nFox News’ David Spunt reports on the FBI search warrant that led to the raid of Mar-a-Lago.\n\nFBI agents seized classified records from former President Trump’s home at Mar-a-Lago during the agency's unprecedented raid on Monday, including some marked as top secret, according to a warrant and property receipt unsealed Friday. The documents had earlier been reviewed and reported by Fox News Digital.\n\nFormer President Trump is disputing the classification, saying the records have been declassified.\n\nAccording to the warrant, reviewed by Fox News early Friday, U.S. Magistrate Judge Bruce Reinhart signed the warrant on Aug. 5, giving the FBI authority to conduct its search \"on or before August 19, 2022,\" and \"in the daytime 6:00 am. to 10:00 p.m.\"\n\nThe warrant and property receipt were formally unsealed Friday afternoon by Reinhart.\n\n\"The locations to be searched include the ‘45 Office,' all storage rooms, and all other rooms or areas within the premises used or available to be used by FPOTUS and his staff and in which boxes or documents could be stored, including all structures or buildings on the estate,\" the warrant states, but did not give authority to agents to search areas being occupied by Mar-a-Lago members or not used by Trump and staff.\n\nEx-CIA director and an MSNBC contributor suggest the execution of Former President Donald Trump after Washington Post claim that the FBI raid sought out \"nuclear\" documents.\n\nThe warrant gave agents the authority to seize \"all physical documents and records constituting evidence, contraband, fruits of crime, or other items illegally possessed\" in violation of U.S. Code, including documents with classification markings and presidential records created between Jan. 20, 2017 and Jan. 20, 2021.\n\nAccording to the property receipt, reviewed before its release by Fox News, FBI agents took approximately 20 boxes of items from the premises, including one set of documents marked as \"Various classified/TS/SCI documents,\" which refers to top secret/sensitive compartmented information.\n\nRecords covered by that government classification level could include human intelligence, and information that, if disclosed, could jeopardize relations between the United States and other nations, as well as the lives of intelligence operatives abroad. However, the classification also encompasses national security information related to the daily operations of the president of the United States.\n\nThe property receipt also shows that FBI agents collected four sets of top secret documents, three sets of secret documents, and three sets of confidential documents.\n\nThe property receipt does not reveal any details about any of those records.\n\nThe list also includes a \"leatherbound box of documents,\" binders of photos, handwritten notes, miscellaneous documents, miscellaneous top secret documents, miscellaneous confidential documents, and other records.\n\nThe government conducted the search in response to what it believes to be a violation of federal laws: 18 USC 793 — Gathering, transmitting or losing defense information; 18 USC 2071 — Concealment, removal or mutilation; and 18 USC 1519 — Destruction, alteration or falsification of records in Federal investigations.\n\nThe allegation of \"gathering, transmitting or losing defense information\" falls under the Espionage Act.\n\nThe former president and his team, though, are disputing the classification and believe the information and records to have been declassified.\n\nFormer president Donald Trump&apos;s Mar-a-Lago resort in Palm Beach, Florida. (Charles Trainor Jr./Miami Herald/Tribune News Service via Getty Images)\n\nTrump posted on his TRUTH Social account Friday that the documents were \"all declassified.\"\n\n\"Number one, it was all declassified. Number two, they didn't need to ‘seize’ anything,\" Trump posted. \"They could have had it anytime they wanted without playing politics and breaking into Mar-a-Lago.\"\n\nTrump added: \"It was in secured storage, with an additional lock put on as per their request.\"\n\n\"The Biden administration is in obvious damage control after their botched raid where they seized the President's picture books, a 'hand-written note,' and declassified documents,\" Trump spokesman Taylor Budowich told Fox News. \"This raid of President Trump's home was not just unprecedented, but unnecessary--and they are leaking lies and innuendos to try to explain away the weaponization of government against their dominant political opponent. This is outrageous.\"\n\nAttorney General Merrick Garland on Thursday, in a rare public statement, said the Justice Department had filed a motion to unseal the warrant and property receipt for the search of the residence of a former president of the United States, \"in light of the former president's public confirmation of the search, the surrounding circumstances and the substantial public interest in this matter.\"\n\n\"The public’s clear and powerful interest in understanding what occurred under these circumstances weighs heavily in favor of unsealing,\" the DOJ’s motion states, noting that Trump should have the opportunity to respond to the motion and \"lodge objections, including with regard to any ‘legitimate private interests’ or the potential for other ‘injury’ if these materials are made public.\" Trump, in a statement late Thursday night, called for the \"immediate\" release of the warrant and property receipt.\n\n\"Not only will I not oppose the release of documents related to the unAmerican, unwarranted, and unnecessary raid and break-in of my home in Palm Beach, Florida, Mar-a-Lago, I am going a step further by ENCOURAGING the immediate release of those documents, even though they have been drawn up by radical left Democrats and possible future political opponents, who have a strong and powerful vested interest in attacking me, much as they have done for the last 6 years,\" Trump said.\n\nDOJ ASKS COURT TO UNSEAL MAR-A-LAGO RAID WARRANT; AG MERRICK GARLAND PERSONALLY SIGNED OFF ON TRUMP SEARCH\n\nThe former president touted his current poll numbers saying they \"are the strongest they have ever been, fundraising by the Republican Party is breaking all records, and midterm elections are fast approaching.\"\n\n\"This unprecedented political weaponization of law enforcement is inappropriate and highly unethical,\" Trump said. \"The world is watching as our Country is being brought to a new low, not only on our border, crime, economy, energy, national security, and so much more, but also with respect to our sacred elections!\n\nHe added: \"Release the documents now!\"\n\nTrump's legal team formally filed a motion in support of unsealing the warrant and property receipt, saying the former president \"does not object\" to the release.\n\nThe warrant and property receipt were formally unsealed by Reinhart Friday afternoon, just after Trump's motion in support of the release.\n\nFormer President Donald Trump in New York City following the FBI raid at his Mar-a-Lago home. (Felipe Ramales / Fox News Digital)\n\nGarland, during his public remarks Thursday, said he \"personally\" signed off on the decision to obtain a warrant to search Trump’s private residence.\n\n\"The department does not take such a decision lightly,\" Garland said. \"Where possible, it is standard practice to seek less intrusive means as an alternative to a search and to narrowly scope any search that is undertaken.\"\n\nGarland also defended DOJ officials and FBI agents against the \"recent unfounded attacks\" on their professionalism.\n\n\"I will not stand by silently when their integrity is unfairly attacked,\" he said.\n\nDONALD TRUMP FIRES BACK AT AG MERRICK GARLAND OVER FBI'S MAR-A-LAGO RAID: 'RELEASE THE DOCUMENTS NOW!'\n\nTrump's office received a grand jury subpoena this spring for classified documents he allegedly took from the White House when he left office in 2021. A source close to Trump told Fox News that the former president cooperated with the subpoena by turning over documents to the FBI.\n\nAccording to the source, a subpoena was issued to a \"custodian of the president,\" and was related to the materials that the National Archives and Records Administration (NARA) was trying to collect after claiming Trump improperly took those classified records with him from Washington D.C. to Mar-a-Lago.\n\nThe source close to Trump told Fox News that Trump has been cooperating in the investigation into the NARA records for a year.\n\nOn June 3, the FBI visited Mar-a-Lago to retrieve the requested documents in the subpoena, which Trump complied with, the source told Fox News.\n\nAttorney General Merrick Garland steps away from the podium after speaking at a news conference at the Justice Department in Washington, Monday, Nov. 8, 2021. (AP Photo/Andrew Harnik) (AP Photo/Andrew Harnik)\n\nThose investigators toured the area of the Florida resort where some documents were stored, then briefly viewed and took custody of a small amount of potentially sensitive material. Separate sources told Fox News that federal investigators had spoken with at least one person who relayed the possibility of more sensitive national security material in that storage room and other areas of the property.\n\nTRUMP TARGETED: A LOOK AT THE INVESTIGATIONS INVOLVING THE FORMER PRESIDENT; FROM RUSSIA TO MAR-A-LAGO\n\nFBI officials, that day, asked to see a storage facility where the records were located. The FBI asked that staff put a lock on the storage room, which they later did.\n\nThis source said Trump and his staff were, and are, committed to being in compliance with the Presidential Records Act, which requires presidential administrations to preserve certain documents.\n\nTrump received that subpoena two months prior to the FBI’s unprecedented raid on a former president of the United States’ private residence—which took place early Monday morning.\n\nThe source questioned whether the federal magistrate judge who signed off on the warrant for the FBI's raid of Mar-a-Lago Monday was aware of Trump's \"past compliance with the subpoena,\" adding that, if the FBI was looking for additional documents, another subpoena could have been issued, as Trump and his team were \"cooperative\" and turned over documents and records responsive to the subpoena issued in the spring.\n\nFox News'  Bill Mears, David Spunt and Gillian Turner contributed to this report.\n\nBrooke Singman is a political correspondent and reporter for Fox News Digital, Fox News Channel and FOX Business.\n\nGet the latest updates from the 2024 campaign trail, exclusive interviews and more Fox News politics content.\n\nBy entering your email and clicking the Subscribe button, you agree to the Fox News Privacy Policy and Terms of Use , and\n\nagree to receive content and promotional communications from Fox News. You understand that you can\n\nopt-out at any time.\n\nSubscribed\n\nYou've successfully subscribed to this newsletter!\n\nThis material may not be published, broadcast, rewritten, or redistributed. ©2026 FOX News Network, LLC. All rights reserved. Quotes displayed in real-time or delayed by at least 15 minutes. Market data provided by Factset . Powered and implemented by FactSet Digital Solutions . Legal Statement . Mutual Fund and ETF data provided by LSEG .",
+      "validation": {
+        "factualTakeawayCount": 2,
+        "pointOfConcernCount": 0,
+        "meetsMinimumFactualTakeaways": true,
+        "note": "There are no points of concern in this article according to the saved annotations."
+      },
+      "annotations": [
+        {
+          "id": "e045eaa1-3057-4fa1-a732-37774340f1c4",
+          "articleId": "qualification8-3017",
+          "type": "comment",
+          "section": "body",
+          "text": "This",
+          "primaryComment": "This",
+          "primaryCommentLabel": "Factual takeaway",
+          "secondaryComment": null,
+          "start": 0,
+          "end": 5,
+          "severity": null,
+          "createdAt": "2026-04-24T15:47:06.558Z"
+        },
+        {
+          "id": "f488d8b5-c700-4a49-a197-705009039715",
+          "articleId": "qualification8-3017",
+          "type": "comment",
+          "section": "body",
+          "text": "material",
+          "primaryComment": "material",
+          "primaryCommentLabel": "Factual takeaway",
+          "secondaryComment": null,
+          "start": 5,
+          "end": 14,
+          "severity": null,
+          "createdAt": "2026-04-24T15:47:13.565Z"
+        }
+      ]
+    },
+    {
+      "articleId": "qualification9-3398",
+      "articleTitle": "Stacey Abrams apologizes after being photographed maskless at school event",
+      "articleText": "S tacey Abrams apologized after receiving criticism for being photographed maskless while surrounded by school children wearing masks.\n\nThe Democratic gubernatorial candidate for Georgia told CNN on Tuesday she got caught up in the “excitement” of reading to children for an African American read-in day when she posed for the cameras.\n\n‘CRUELTY AND HYPOCRISY’: STACEY ABRAMS SLAMMED FOR NOT WEARING MASK IN CLASSROOM\n\n“I took a picture, and that was a mistake. Protocols matter, and protecting our kids is the most important thing, and anything that could be perceived as undermining that is a mistake, and I apologize,” Abrams said.\n\n“Protocols matter. Protecting our kids is the most important thing, and anything that can be perceived as undermining that is a mistake, and I apologize.” @staceyabrams shares the story behind photo of her without a mask at a school event. pic.twitter.com/58s4HqL6tO\n\n— OutFrontCNN (@OutFrontCNN) February 9, 2022\n\nAbrams said she wore her mask prior to approaching a podium, where she informed the children that she was taking hers off because of those listening in remotely, making a point to say that those who were there in person were socially distanced.\n\nAs Democratic governors in several states ease mask mandates, Abrams said Georgia is not at the same point in the coronavirus pandemic as others.\n\n“COVID hygiene is going to be a point of debate for a very long time, and we can only follow the science,” she said. “Unfortunately, in Georgia, we are not in a place where that conversation is ready because we have one of the lowest vaccination rates in the country,” she said.\n\nStacey Abrams wants state government mask mandates for Georgians and their children.\n\nBut it looks like they wouldn’t apply when she’s attending a photo op. https://t.co/A7H8U6eXKS\n\n— Brian Kemp (@BrianKempGA) February 6, 2022\n\nThough Abrams expressed regret for the photo, over which she was chastised by Gov. Brian Kemp, she rallied against it being used for political advantage.\n\nCLICK HERE TO READ MORE FROM THE WASHINGTON EXAMINER\n\n“This is complicated, and we cannot make this about politics or scoring political points,” she said.",
+      "validation": {
+        "factualTakeawayCount": 2,
+        "pointOfConcernCount": 1,
+        "meetsMinimumFactualTakeaways": true,
+        "note": null
+      },
+      "annotations": [
+        {
+          "id": "c321d436-162d-4a64-abaa-9341e2db5b69",
+          "articleId": "qualification9-3398",
+          "type": "comment",
+          "section": "body",
+          "text": "S tacey",
+          "primaryComment": "S tacey",
+          "primaryCommentLabel": "Factual takeaway",
+          "secondaryComment": null,
+          "start": 0,
+          "end": 7,
+          "severity": null,
+          "createdAt": "2026-04-24T15:47:27.892Z"
+        },
+        {
+          "id": "2f57fc6f-15e3-4553-b2e4-c69ee2bb9558",
+          "articleId": "qualification9-3398",
+          "type": "comment",
+          "section": "body",
+          "text": "Abrams",
+          "primaryComment": "Abrams",
+          "primaryCommentLabel": "Factual takeaway",
+          "secondaryComment": null,
+          "start": 8,
+          "end": 15,
+          "severity": null,
+          "createdAt": "2026-04-24T15:47:38.989Z"
+        },
+        {
+          "id": "094e2c00-cebf-48e2-9e17-f8ce82ee07f6",
+          "articleId": "qualification9-3398",
+          "type": "issue",
+          "section": "body",
+          "text": "The Democratic gubernatorial candidate for Georgia told CNN on Tuesday she got caught up in the “excitement” of reading to children for an African American read-in day when she posed for the cameras.",
+          "primaryComment": "sd",
+          "primaryCommentLabel": "Potential takeaway",
+          "secondaryComment": "sd",
+          "start": 134,
+          "end": 333,
+          "severity": 3,
+          "createdAt": "2026-04-24T15:48:19.714Z"
+        }
+      ]
+    }
+  ]
+}
