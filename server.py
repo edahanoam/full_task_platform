@@ -62,7 +62,8 @@ class AnnotationHandler(SimpleHTTPRequestHandler):
         super().__init__(*args, directory=str(ROOT_DIR), **kwargs)
 
     def end_headers(self):
-        if self.path.endswith(".html") or self.path == "/":
+        clean_path = urlparse(self.path).path
+        if clean_path == "/" or clean_path.endswith((".html", ".js", ".jsonl")):
             self.send_header("Cache-Control", "no-store")
         super().end_headers()
 

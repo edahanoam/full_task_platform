@@ -1,4 +1,5 @@
-const DATASET_PATH = "./genz_and_ufo_articles.jsonl";
+const DATASET_PATH = "./UFOGenZ.jsonl";
+const DATASET_CACHE_BUSTER = "ufo-genz-20260428";
 const ANNOTATION_SAVE_PATH = "/api/annotations/save";
 const LOCAL_SESSION_KEY = "annotation_task_session_id";
 const SAVE_DEBOUNCE_MS = 700;
@@ -264,7 +265,8 @@ async function initApp() {
   setLoadingState();
 
   try {
-    const response = await fetch(DATASET_PATH, { cache: "no-store" });
+    const datasetUrl = `${DATASET_PATH}?v=${encodeURIComponent(DATASET_CACHE_BUSTER)}`;
+    const response = await fetch(datasetUrl, { cache: "no-store" });
     if (!response.ok) {
       throw new Error(`Dataset request failed with status ${response.status}.`);
     }

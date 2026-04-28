@@ -144,9 +144,14 @@ function serveStaticFile(request, response) {
     }
 
     const contentType = MIME_TYPES[path.extname(filePath).toLowerCase()] || "application/octet-stream";
+    const shouldAvoidCache =
+      contentType.startsWith("text/html") ||
+      contentType.startsWith("text/javascript") ||
+      contentType.startsWith("application/x-ndjson");
+
     response.writeHead(200, {
       "Content-Type": contentType,
-      "Cache-Control": contentType.startsWith("text/html") ? "no-store" : "public, max-age=60",
+      "Cache-Control": shouldAvoidCache ? "no-store" : "public, max-age=60",
     });
     response.end(data);
   });
