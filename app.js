@@ -162,6 +162,20 @@ elements.clearButton.addEventListener("click", () => {
   clearDraft();
 });
 
+elements.annotationList.addEventListener("click", (event) => {
+  const deleteButton = event.target.closest(".annotation-delete");
+  if (!deleteButton) {
+    return;
+  }
+
+  const annotationItem = deleteButton.closest(".annotation-item");
+  if (!annotationItem?.dataset.annotationId) {
+    return;
+  }
+
+  deleteAnnotation(annotationItem.dataset.annotationId);
+});
+
 elements.finalizeButton?.addEventListener("click", async () => {
   if (articles.length === 0) {
     window.alert("The article set has not loaded yet.");
@@ -493,6 +507,36 @@ function renderAnnotations() {
 
     root.dataset.annotationId = annotation.id;
     elements.annotationList.appendChild(fragment);
+  });
+}
+
+function deleteAnnotation(annotationId) {
+  const initialCount = state.currentAnnotations.length;
+  state.currentAnnotations = state.currentAnnotations.filter(
+    (annotation) => annotation.id !== annotationId,
+  );
+
+  if (state.currentAnnotations.length === initialCount) {
+    return;
+  }
+
+  clearDraft();
+  refreshAnnotationMarks();
+  renderAnnotations();
+  renderSubmission();
+  scheduleServerSave("annotation-deleted");
+}
+
+function refreshAnnotationMarks() {
+  const article = getCurrentArticle();
+  if (!article) {
+    return;
+  }
+
+  elements.articleTitle.textContent = article.title;
+  renderArticleParagraphs(article.paragraphs);
+  state.currentAnnotations.forEach((annotation) => {
+    wrapSelection(annotation);
   });
 }
 

@@ -926,6 +926,8 @@ textarea {
 }
 
 .annotation-item {
+  display: grid;
+  gap: 10px;
   padding: 18px;
   border-radius: 20px;
   border: 1px solid var(--line);
@@ -959,6 +961,12 @@ textarea {
 .annotation-note {
   margin: 0;
   line-height: 1.6;
+}
+
+.annotation-delete {
+  justify-self: start;
+  padding: 8px 12px;
+  color: var(--issue-deep);
 }
 
 .empty-state {
