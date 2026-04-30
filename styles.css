@@ -21,6 +21,7 @@
 body {
   margin: 0;
   min-height: 100vh;
+  padding-bottom: 56px;
   font-family: var(--font-sans);
   color: var(--ink);
   background:
@@ -318,6 +319,36 @@ textarea {
 .annotation-range,
 .empty-state {
   color: var(--muted);
+}
+
+.site-footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 18px;
+  border-top: 1px solid rgba(31, 27, 22, 0.1);
+  background: rgba(255, 250, 242, 0.92);
+  backdrop-filter: blur(12px);
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.site-footer a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.site-footer a:hover,
+.site-footer a:focus-visible {
+  text-decoration: underline;
 }
 
 .intro-block p {
