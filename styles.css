@@ -635,7 +635,16 @@ textarea {
   width: min(560px, 100%);
 }
 
+.edit-annotation-modal-card {
+  width: min(640px, 100%);
+}
+
 .freeform-modal-content {
+  display: grid;
+  gap: 16px;
+}
+
+.edit-annotation-modal-content {
   display: grid;
   gap: 16px;
 }
@@ -645,6 +654,12 @@ textarea {
 }
 
 .freeform-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.edit-annotation-actions {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
@@ -868,6 +883,12 @@ textarea {
   margin: 0;
 }
 
+#edit-severity-input {
+  display: block;
+  width: 100%;
+  margin: 0;
+}
+
 .field.is-hidden {
   display: none;
 }
@@ -999,9 +1020,19 @@ textarea {
   line-height: 1.6;
 }
 
+.annotation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.annotation-edit,
 .annotation-delete {
   justify-self: start;
   padding: 8px 12px;
+}
+
+.annotation-delete {
   color: var(--issue-deep);
 }
 

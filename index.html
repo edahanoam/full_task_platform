@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>News Annotation Task</title>
-    <link rel="stylesheet" href="./styles.css?v=4" />
+    <link rel="stylesheet" href="./styles.css?v=5" />
   </head>
   <body>
     <section id="guidelines-screen" class="intro-screen">
@@ -496,6 +496,58 @@ You will be presented with news articles to assess according to your professiona
       </div>
     </section>
 
+    <section
+      id="edit-annotation-modal"
+      class="modal-shell is-hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="edit-annotation-modal-title"
+    >
+      <div id="edit-annotation-modal-backdrop" class="modal-backdrop"></div>
+      <div class="modal-card edit-annotation-modal-card">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow">Edit annotation</p>
+            <h2 id="edit-annotation-modal-title">Update saved annotation</h2>
+          </div>
+          <button id="edit-annotation-cancel-top" class="ghost-button modal-close" type="button">
+            Close
+          </button>
+        </div>
+        <div class="modal-content edit-annotation-modal-content">
+          <div class="selection-card">
+            <p class="selection-label">Annotated text</p>
+            <p id="edit-annotation-text" class="selection-text"></p>
+          </div>
+          <label class="field">
+            <span id="edit-primary-label">Response</span>
+            <textarea id="edit-primary-comment" rows="4"></textarea>
+          </label>
+          <label id="edit-secondary-field" class="field is-hidden">
+            <span>Question</span>
+            <textarea id="edit-secondary-comment" rows="4"></textarea>
+          </label>
+          <div id="edit-severity-panel" class="severity-panel is-hidden">
+            <div class="panel-header compact">
+              <h3>Severity of this concern</h3>
+              <p class="severity-hint">Drag the handle to choose a score from 1 to 5.</p>
+            </div>
+            <input id="edit-severity-input" type="range" min="1" max="5" value="3" />
+            <div class="severity-scale">
+              <span>minor issue</span>
+              <strong id="edit-severity-value">3</strong>
+              <span>major issue</span>
+            </div>
+          </div>
+          <p id="edit-annotation-error" class="submission-note is-warning is-hidden" aria-live="polite"></p>
+          <div class="edit-annotation-actions">
+            <button id="edit-annotation-cancel" class="ghost-button" type="button">Cancel</button>
+            <button id="edit-annotation-save" class="primary-button" type="button">Save changes</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <template id="annotation-item-template">
       <article class="annotation-item">
         <div class="annotation-chip-row">
@@ -504,7 +556,10 @@ You will be presented with news articles to assess according to your professiona
         </div>
         <p class="annotation-quote"></p>
         <p class="annotation-note"></p>
-        <button class="ghost-button annotation-delete" type="button">Delete</button>
+        <div class="annotation-actions">
+          <button class="ghost-button annotation-edit" type="button">Edit</button>
+          <button class="ghost-button annotation-delete" type="button">Delete</button>
+        </div>
       </article>
     </template>
 
@@ -514,7 +569,7 @@ You will be presented with news articles to assess according to your professiona
       <a href="https://data-protection.mpi-klsb.mpg.de/sws/critical-news-annotation">Data Protection</a>
     </footer>
 
-    <script src="./app.js?v=6"></script>
+    <script src="./app.js?v=7"></script>
   </body>
 </html>
 

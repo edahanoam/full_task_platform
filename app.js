@@ -79,6 +79,20 @@ const elements = {
   freeformError: document.getElementById("freeform-modal-error"),
   freeformSkip: document.getElementById("freeform-modal-skip"),
   freeformSubmit: document.getElementById("freeform-modal-submit"),
+  editAnnotationModal: document.getElementById("edit-annotation-modal"),
+  editAnnotationBackdrop: document.getElementById("edit-annotation-modal-backdrop"),
+  editAnnotationText: document.getElementById("edit-annotation-text"),
+  editPrimaryLabel: document.getElementById("edit-primary-label"),
+  editPrimaryComment: document.getElementById("edit-primary-comment"),
+  editSecondaryField: document.getElementById("edit-secondary-field"),
+  editSecondaryComment: document.getElementById("edit-secondary-comment"),
+  editSeverityPanel: document.getElementById("edit-severity-panel"),
+  editSeverityInput: document.getElementById("edit-severity-input"),
+  editSeverityValue: document.getElementById("edit-severity-value"),
+  editAnnotationError: document.getElementById("edit-annotation-error"),
+  editAnnotationCancelTop: document.getElementById("edit-annotation-cancel-top"),
+  editAnnotationCancel: document.getElementById("edit-annotation-cancel"),
+  editAnnotationSave: document.getElementById("edit-annotation-save"),
 };
 
 elements.guidelinesContinue?.addEventListener("click", () => {
@@ -117,10 +131,21 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !elements.guidelinesModal?.classList.contains("is-hidden")) {
     closeGuidelinesModal();
   }
+
+  if (
+    event.key === "Escape" &&
+    !elements.editAnnotationModal?.classList.contains("is-hidden")
+  ) {
+    closeEditAnnotationModal();
+  }
 });
 
 elements.severityInput.addEventListener("input", () => {
   elements.severityValue.textContent = elements.severityInput.value;
+});
+
+elements.editSeverityInput?.addEventListener("input", () => {
+  elements.editSeverityValue.textContent = elements.editSeverityInput.value;
 });
 
 elements.saveButton.addEventListener("click", () => {
@@ -176,6 +201,15 @@ elements.clearButton.addEventListener("click", () => {
 });
 
 elements.annotationList.addEventListener("click", (event) => {
+  const editButton = event.target.closest(".annotation-edit");
+  if (editButton) {
+    const annotationItem = editButton.closest(".annotation-item");
+    if (annotationItem?.dataset.annotationId) {
+      openEditAnnotationModal(annotationItem.dataset.annotationId);
+    }
+    return;
+  }
+
   const deleteButton = event.target.closest(".annotation-delete");
   if (!deleteButton) {
     return;
@@ -188,6 +222,11 @@ elements.annotationList.addEventListener("click", (event) => {
 
   deleteAnnotation(annotationItem.dataset.annotationId);
 });
+
+elements.editAnnotationSave?.addEventListener("click", saveEditedAnnotation);
+elements.editAnnotationCancel?.addEventListener("click", closeEditAnnotationModal);
+elements.editAnnotationCancelTop?.addEventListener("click", closeEditAnnotationModal);
+elements.editAnnotationBackdrop?.addEventListener("click", closeEditAnnotationModal);
 
 elements.finalizeButton?.addEventListener("click", async () => {
   if (articles.length === 0) {
@@ -542,6 +581,79 @@ function deleteAnnotation(annotationId) {
   renderAnnotations();
   renderSubmission();
   scheduleServerSave("annotation-deleted");
+}
+
+function openEditAnnotationModal(annotationId) {
+  const annotation = state.currentAnnotations.find((item) => item.id === annotationId);
+  if (!annotation || !elements.editAnnotationModal) {
+    return;
+  }
+
+  const isIssue = annotation.type === "issue";
+  elements.editAnnotationModal.dataset.annotationId = annotation.id;
+  elements.editAnnotationText.textContent = `"${annotation.text}"`;
+  elements.editPrimaryLabel.textContent = annotation.primaryCommentLabel;
+  elements.editPrimaryComment.value = annotation.primaryComment;
+  elements.editSecondaryField.classList.toggle("is-hidden", !isIssue);
+  elements.editSecondaryComment.value = isIssue ? annotation.secondaryComment || "" : "";
+  elements.editSeverityPanel.classList.toggle("is-hidden", !isIssue);
+  elements.editSeverityInput.value = isIssue ? String(annotation.severity || 3) : "3";
+  elements.editSeverityValue.textContent = elements.editSeverityInput.value;
+  elements.editAnnotationError.textContent = "";
+  elements.editAnnotationError.classList.add("is-hidden");
+
+  elements.editAnnotationModal.classList.remove("is-hidden");
+  document.body.classList.add("modal-open");
+  window.setTimeout(() => elements.editPrimaryComment.focus(), 0);
+}
+
+function closeEditAnnotationModal() {
+  if (!elements.editAnnotationModal) {
+    return;
+  }
+
+  elements.editAnnotationModal.classList.add("is-hidden");
+  elements.editAnnotationModal.dataset.annotationId = "";
+  document.body.classList.remove("modal-open");
+}
+
+function saveEditedAnnotation() {
+  const annotationId = elements.editAnnotationModal?.dataset.annotationId;
+  const annotation = state.currentAnnotations.find((item) => item.id === annotationId);
+  if (!annotation) {
+    closeEditAnnotationModal();
+    return;
+  }
+
+  const primaryComment = elements.editPrimaryComment.value.trim();
+  if (!primaryComment) {
+    showEditAnnotationError("Add the first comment before saving changes.");
+    elements.editPrimaryComment.focus();
+    return;
+  }
+
+  const isIssue = annotation.type === "issue";
+  const secondaryComment = isIssue ? elements.editSecondaryComment.value.trim() : "";
+  if (isIssue && !secondaryComment) {
+    showEditAnnotationError("Add the question before saving changes.");
+    elements.editSecondaryComment.focus();
+    return;
+  }
+
+  annotation.primaryComment = primaryComment;
+  annotation.secondaryComment = isIssue ? secondaryComment : null;
+  annotation.severity = isIssue ? Number(elements.editSeverityInput.value) : null;
+  annotation.updatedAt = new Date().toISOString();
+
+  closeEditAnnotationModal();
+  renderAnnotations();
+  renderSubmission();
+  scheduleServerSave("annotation-edited");
+}
+
+function showEditAnnotationError(message) {
+  elements.editAnnotationError.textContent = message;
+  elements.editAnnotationError.classList.remove("is-hidden");
 }
 
 function refreshAnnotationMarks() {
