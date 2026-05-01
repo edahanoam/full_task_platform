@@ -546,7 +546,7 @@ function renderAnnotations() {
     const isIssue = annotation.type === "issue";
     chip.textContent = isIssue
       ? `Issue severity ${annotation.severity}/5`
-      : "Comment span";
+      : "Factual Takeaway";
     chip.style.background = isIssue
       ? "rgba(255, 123, 114, 0.18)"
       : "rgba(246, 200, 95, 0.28)";
