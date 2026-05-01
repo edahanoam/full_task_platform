@@ -673,15 +673,16 @@ function validateAnnotations(annotations) {
 async function showPriorExperiencePrompt() {
   const response = await openFreeformPrompt({
     eyebrow: "Before you begin",
-    title: "Journalism experience",
-    description: "Please describe in 1-2 sentences your prior journalism experience.",
+    title: "Participant details",
+    description: "Please enter your participant ID and briefly describe (1–2 sentences) your prior journalism experience.",
     label: "Prior journalism experience",
     placeholder: "Example: I worked as a student reporter for two years and have edited newsletters.",
     submitLabel: "Continue",
     required: true,
     includeParticipantId: true,
-    errorMessage: "Please enter your participant ID and 1-2 sentences before continuing.",
+    errorMessage: "Please enter your participant ID and 1–2 sentences before continuing.",
   });
+
 
   elements.participantId.value = response.participantId;
   state.priorJournalismExperience = response.text;
