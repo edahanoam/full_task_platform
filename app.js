@@ -13,6 +13,8 @@ const state = {
   currentArticleIndex: 0,
   currentAnnotations: [],
   finalizedArticles: [],
+  priorJournalismExperience: "",
+  qualificationFeedback: "",
   sessionId: getLocalSessionId(),
 };
 
@@ -66,6 +68,17 @@ const elements = {
   saveStatus: document.getElementById("save-status"),
   output: document.getElementById("submission-output"),
   modeButtons: Array.from(document.querySelectorAll(".mode-button")),
+  freeformModal: document.getElementById("freeform-modal"),
+  freeformEyebrow: document.getElementById("freeform-modal-eyebrow"),
+  freeformTitle: document.getElementById("freeform-modal-title"),
+  freeformDescription: document.getElementById("freeform-modal-description"),
+  freeformParticipantField: document.getElementById("freeform-modal-participant-field"),
+  freeformParticipantId: document.getElementById("freeform-modal-participant-id"),
+  freeformLabel: document.getElementById("freeform-modal-label"),
+  freeformInput: document.getElementById("freeform-modal-input"),
+  freeformError: document.getElementById("freeform-modal-error"),
+  freeformSkip: document.getElementById("freeform-modal-skip"),
+  freeformSubmit: document.getElementById("freeform-modal-submit"),
 };
 
 elements.guidelinesContinue?.addEventListener("click", () => {
@@ -273,6 +286,7 @@ syncModeUi();
 renderAnnotations();
 renderSubmission();
 hydrateGuidelinesModal();
+showPriorExperiencePrompt();
 initApp();
 
 async function initApp() {
@@ -305,6 +319,9 @@ async function initApp() {
     showSubmissionNote("", false);
     setSaveStatus("Server autosave will start after your first annotation.", false);
     loadCurrentArticle();
+    if (state.priorJournalismExperience) {
+      scheduleServerSave("prior-journalism-experience-added");
+    }
   } catch (error) {
     showDatasetError(error);
   }
@@ -576,6 +593,8 @@ async function finalizeCurrentArticle() {
     return;
   }
 
+  await showQualificationFeedbackPrompt();
+
   showSubmissionNote("All articles are complete. Your full submission payload is ready.", false);
   state.currentAnnotations = [];
   renderAnnotations();
@@ -594,6 +613,8 @@ function buildSubmissionPayload() {
   return {
     participantId: elements.participantId.value.trim(),
     sessionId: state.sessionId,
+    priorJournalismExperience: state.priorJournalismExperience,
+    qualificationFeedback: state.qualificationFeedback,
     totalArticles: articles.length,
     completedArticles: state.finalizedArticles.length,
     currentArticleId: allArticlesCompleted || !currentArticle ? null : currentArticle.id,
@@ -647,6 +668,137 @@ function validateAnnotations(annotations) {
         ? "Note: there are no points of concern in this article according to your annotations."
         : null,
   };
+}
+
+async function showPriorExperiencePrompt() {
+  const response = await openFreeformPrompt({
+    eyebrow: "Before you begin",
+    title: "Journalism experience",
+    description: "Please describe in 1-2 sentences your prior journalism experience.",
+    label: "Prior journalism experience",
+    placeholder: "Example: I worked as a student reporter for two years and have edited newsletters.",
+    submitLabel: "Continue",
+    required: true,
+    includeParticipantId: true,
+    errorMessage: "Please enter your participant ID and 1-2 sentences before continuing.",
+  });
+
+  elements.participantId.value = response.participantId;
+  state.priorJournalismExperience = response.text;
+  renderSubmission();
+  scheduleServerSave("prior-journalism-experience-added");
+}
+
+async function showQualificationFeedbackPrompt() {
+  const response = await openFreeformPrompt({
+    eyebrow: "Optional feedback",
+    title: "Task feedback",
+    description: "Thank you so much for participating! We’d really appreciate any feedback you may have about the qualification task or the platform.",
+    label: "Feedback",
+    placeholder: "Optional",
+    submitLabel: "Submit feedback",
+    skipLabel: "Skip",
+    required: false,
+  });
+
+  state.qualificationFeedback = response;
+  renderSubmission();
+  await saveSnapshotToServer("qualification-feedback-added");
+}
+
+function openFreeformPrompt(config) {
+  if (!elements.freeformModal) {
+    return Promise.resolve("");
+  }
+
+  elements.freeformEyebrow.textContent = config.eyebrow;
+  elements.freeformTitle.textContent = config.title;
+  elements.freeformDescription.textContent = config.description;
+  elements.freeformParticipantField.classList.toggle(
+    "is-hidden",
+    !config.includeParticipantId,
+  );
+  elements.freeformParticipantId.value = config.includeParticipantId
+    ? elements.participantId.value.trim()
+    : "";
+  elements.freeformLabel.textContent = config.label;
+  elements.freeformInput.value = "";
+  elements.freeformInput.placeholder = config.placeholder || "";
+  elements.freeformSubmit.textContent = config.submitLabel || "Continue";
+  elements.freeformSkip.textContent = config.skipLabel || "Skip";
+  elements.freeformSkip.classList.toggle("is-hidden", config.required);
+  elements.freeformError.textContent = "";
+  elements.freeformError.classList.add("is-hidden");
+
+  elements.freeformModal.classList.remove("is-hidden");
+  document.body.classList.add("modal-open");
+  window.setTimeout(() => {
+    if (config.includeParticipantId && !elements.freeformParticipantId.value.trim()) {
+      elements.freeformParticipantId.focus();
+      return;
+    }
+
+    elements.freeformInput.focus();
+  }, 0);
+
+  return new Promise((resolve) => {
+    const cleanup = () => {
+      elements.freeformModal.classList.add("is-hidden");
+      document.body.classList.remove("modal-open");
+      elements.freeformSubmit.removeEventListener("click", handleSubmit);
+      elements.freeformSkip.removeEventListener("click", handleSkip);
+      document.removeEventListener("keydown", handleKeydown);
+    };
+
+    const finish = (value, participantId = "") => {
+      cleanup();
+      if (config.includeParticipantId) {
+        resolve({
+          participantId: participantId.trim(),
+          text: value.trim(),
+        });
+        return;
+      }
+
+      resolve(value.trim());
+    };
+
+    const handleSubmit = () => {
+      const value = elements.freeformInput.value.trim();
+      const participantId = elements.freeformParticipantId.value.trim();
+      if (
+        config.required &&
+        (!value || (config.includeParticipantId && !participantId))
+      ) {
+        elements.freeformError.textContent = config.errorMessage || "Please enter a response.";
+        elements.freeformError.classList.remove("is-hidden");
+        if (config.includeParticipantId && !participantId) {
+          elements.freeformParticipantId.focus();
+        } else {
+          elements.freeformInput.focus();
+        }
+        return;
+      }
+
+      finish(value, participantId);
+    };
+
+    const handleSkip = () => {
+      if (!config.required) {
+        finish("");
+      }
+    };
+
+    const handleKeydown = (event) => {
+      if (event.key === "Escape" && !config.required) {
+        handleSkip();
+      }
+    };
+
+    elements.freeformSubmit.addEventListener("click", handleSubmit);
+    elements.freeformSkip.addEventListener("click", handleSkip);
+    document.addEventListener("keydown", handleKeydown);
+  });
 }
 
 function wrapSelection(annotation, selectionRange) {

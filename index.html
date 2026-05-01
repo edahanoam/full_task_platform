@@ -455,6 +455,47 @@ You will be presented with news articles to assess according to your professiona
       </div>
     </section>
 
+    <section
+      id="freeform-modal"
+      class="modal-shell is-hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="freeform-modal-title"
+      aria-describedby="freeform-modal-description"
+    >
+      <div class="modal-backdrop"></div>
+      <div class="modal-card freeform-modal-card">
+        <div class="modal-header">
+          <div>
+            <p id="freeform-modal-eyebrow" class="eyebrow">Before you begin</p>
+            <h2 id="freeform-modal-title">Journalism experience</h2>
+          </div>
+        </div>
+        <div class="modal-content freeform-modal-content">
+          <p id="freeform-modal-description" class="modal-lede">
+            Please describe in 1-2 sentences your prior journalism experience.
+          </p>
+          <label id="freeform-modal-participant-field" class="field is-hidden">
+            <span>Participant ID</span>
+            <input id="freeform-modal-participant-id" type="text" placeholder="prolific_pid_123" />
+          </label>
+          <label class="field">
+            <span id="freeform-modal-label">Your response</span>
+            <textarea id="freeform-modal-input" rows="5"></textarea>
+          </label>
+          <p id="freeform-modal-error" class="submission-note is-warning is-hidden" aria-live="polite"></p>
+          <div class="freeform-modal-actions">
+            <button id="freeform-modal-skip" class="ghost-button is-hidden" type="button">
+              Skip
+            </button>
+            <button id="freeform-modal-submit" class="primary-button" type="button">
+              Continue
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <template id="annotation-item-template">
       <article class="annotation-item">
         <div class="annotation-chip-row">
