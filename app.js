@@ -35,6 +35,7 @@ const elements = {
   guidelinesScreen: document.getElementById("guidelines-screen"),
   platformScreen: document.getElementById("platform-screen"),
   taskScreen: document.getElementById("task-screen"),
+  completionScreen: document.getElementById("completion-screen"),
   guidelinesSource: document.querySelector("#guidelines-screen .intro-copy"),
   guidelinesSourceLead: document.querySelector("#guidelines-screen .intro-card > h3"),
   guidelinesContinue: document.getElementById("guidelines-continue"),
@@ -710,7 +711,15 @@ async function finalizeCurrentArticle() {
   renderAnnotations();
   renderSubmission();
   await saveSnapshotToServer("submission-complete");
-  window.alert("All articles are complete. Your responses have been saved.");
+  showCompletionScreen();
+}
+
+function showCompletionScreen() {
+  elements.guidelinesScreen?.classList.add("is-hidden");
+  elements.platformScreen?.classList.add("is-hidden");
+  elements.taskScreen?.classList.add("is-hidden");
+  elements.completionScreen?.classList.remove("is-hidden");
+  window.scrollTo({ top: 0, behavior: "auto" });
 }
 
 function buildSubmissionPayload() {
