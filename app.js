@@ -676,7 +676,7 @@ async function showPriorExperiencePrompt() {
     title: "Participant details",
     description: "Please enter your participant ID and briefly describe (1–2 sentences) your prior journalism experience.",
     label: "Prior journalism experience",
-    placeholder: "Example: I worked as a student reporter for two years and have edited newsletters.",
+    placeholder: "Example: I worked as a professional journalist for two years at a leading english-language publication in Europe.",
     submitLabel: "Continue",
     required: true,
     includeParticipantId: true,
