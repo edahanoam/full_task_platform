@@ -65,7 +65,6 @@ const elements = {
   participantId: document.getElementById("participant-id"),
   articleId: document.getElementById("article-id"),
   submissionNote: document.getElementById("submission-note"),
-  saveStatus: document.getElementById("save-status"),
   output: document.getElementById("submission-output"),
   modeButtons: Array.from(document.querySelectorAll(".mode-button")),
   freeformModal: document.getElementById("freeform-modal"),
@@ -356,7 +355,6 @@ async function initApp() {
     state.finalizedArticles = [];
     clearDraft();
     showSubmissionNote("", false);
-    setSaveStatus("Server autosave will start after your first annotation.", false);
     loadCurrentArticle();
     if (state.priorJournalismExperience) {
       scheduleServerSave("prior-journalism-experience-added");
@@ -707,12 +705,12 @@ async function finalizeCurrentArticle() {
 
   await showQualificationFeedbackPrompt();
 
-  showSubmissionNote("All articles are complete. Your full submission payload is ready.", false);
+  showSubmissionNote("All articles are complete. Your responses have been saved.", false);
   state.currentAnnotations = [];
   renderAnnotations();
   renderSubmission();
   await saveSnapshotToServer("submission-complete");
-  window.alert("All articles are complete. You can now submit the full JSON payload.");
+  window.alert("All articles are complete. Your responses have been saved.");
 }
 
 function buildSubmissionPayload() {
@@ -1093,7 +1091,6 @@ function scheduleServerSave(reason) {
   }
 
   window.clearTimeout(saveDebounceTimer);
-  setSaveStatus("Saving annotations to the VM...", false);
   saveDebounceTimer = window.setTimeout(() => {
     saveSnapshotToServer(reason);
   }, SAVE_DEBOUNCE_MS);
@@ -1122,23 +1119,9 @@ async function saveSnapshotToServer(reason) {
       throw new Error(`Server returned ${response.status}.`);
     }
 
-    const result = await response.json();
-    setSaveStatus(`Saved on VM: ${result.latestFile}`, false);
+    await response.json();
     return true;
   } catch (error) {
-    setSaveStatus(
-      `VM autosave is unavailable. The JSON below is still current. (${error.message || error})`,
-      true,
-    );
     return false;
   }
-}
-
-function setSaveStatus(message, isWarning) {
-  if (!elements.saveStatus) {
-    return;
-  }
-
-  elements.saveStatus.textContent = message;
-  elements.saveStatus.classList.toggle("is-warning", isWarning);
 }
