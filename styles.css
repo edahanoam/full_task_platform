@@ -292,6 +292,10 @@ textarea {
   padding: 28px;
 }
 
+.article-meta {
+  margin-bottom: 36px;
+}
+
 .brand-block h1,
 .article-meta h2 {
   margin: 8px 0 12px;
