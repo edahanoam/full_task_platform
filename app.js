@@ -60,6 +60,8 @@ const elements = {
   severityValue: document.getElementById("severity-value"),
   saveButton: document.getElementById("save-annotation"),
   clearButton: document.getElementById("clear-selection"),
+  articleScopeField: document.getElementById("article-scope-field"),
+  articleScopeCheckbox: document.getElementById("article-scope-checkbox"),
   finalizeButton: document.getElementById("finalize-submission"),
   annotationList: document.getElementById("annotation-list"),
   template: document.getElementById("annotation-item-template"),
@@ -148,9 +150,16 @@ elements.editSeverityInput?.addEventListener("input", () => {
   elements.editSeverityValue.textContent = elements.editSeverityInput.value;
 });
 
+elements.articleScopeCheckbox?.addEventListener("change", syncArticleScopeUi);
+
 elements.saveButton.addEventListener("click", () => {
-  if (!state.selection) {
-    window.alert("Select a span in the article before saving.");
+  const isArticleScope = isArticleScopeSelected();
+  if (!state.selection && !isArticleScope) {
+    const alertMessage =
+      state.mode === "issue"
+        ? "Select a span in the article or mark that the concern applies to the entire article before saving."
+        : "Select a span in the article before saving.";
+    window.alert(alertMessage);
     return;
   }
 
@@ -171,25 +180,28 @@ elements.saveButton.addEventListener("click", () => {
     id: createId(),
     articleId: getCurrentArticle().id,
     type: state.mode,
-    section: state.selection.section,
-    text: state.selection.text,
+    scope: isArticleScope ? "article" : "span",
+    section: isArticleScope ? "article" : state.selection.section,
+    text: isArticleScope ? "Entire article" : state.selection.text,
     primaryComment,
     primaryCommentLabel: modeConfig[state.mode].primaryLabel,
     secondaryComment: state.mode === "issue" ? secondaryComment : null,
-    start: state.selection.start,
-    end: state.selection.end,
+    start: isArticleScope ? null : state.selection.start,
+    end: isArticleScope ? null : state.selection.end,
     severity: state.mode === "issue" ? Number(elements.severityInput.value) : null,
     createdAt: new Date().toISOString(),
   };
 
-  if (hasOverlap(annotation.section, annotation.start, annotation.end)) {
+  if (!isArticleScope && hasOverlap(annotation.section, annotation.start, annotation.end)) {
     window.alert("This prototype does not allow overlapping annotations yet.");
     return;
   }
 
-  const selectionRange = state.selection.range?.cloneRange();
+  const selectionRange = isArticleScope ? null : state.selection.range?.cloneRange();
   state.currentAnnotations.push(annotation);
-  wrapSelection(annotation, selectionRange);
+  if (!isArticleScope) {
+    wrapSelection(annotation, selectionRange);
+  }
   clearDraft();
   renderAnnotations();
   renderSubmission();
@@ -312,6 +324,9 @@ function captureCurrentSelection() {
     range,
   };
 
+  if (elements.articleScopeCheckbox?.checked) {
+    elements.articleScopeCheckbox.checked = false;
+  }
   elements.selectedText.textContent = `"${text}"`;
 }
 
@@ -515,8 +530,13 @@ function syncModeUi() {
   const isIssue = state.mode === "issue";
   elements.severityPanel.classList.toggle("is-hidden", !isIssue);
   elements.secondaryCommentField.classList.toggle("is-hidden", !isIssue);
+  elements.articleScopeField?.classList.toggle("is-hidden", !isIssue);
   elements.primaryCommentLabel.textContent = modeConfig[state.mode].primaryLabel;
   elements.primaryCommentInput.placeholder = modeConfig[state.mode].primaryPlaceholder;
+  if (!isIssue && elements.articleScopeCheckbox?.checked) {
+    elements.articleScopeCheckbox.checked = false;
+    syncArticleScopeUi();
+  }
 }
 
 function clearDraft() {
@@ -524,7 +544,27 @@ function clearDraft() {
   elements.selectedText.textContent = "No text selected yet.";
   elements.primaryCommentInput.value = "";
   elements.secondaryCommentInput.value = "";
+  if (elements.articleScopeCheckbox) {
+    elements.articleScopeCheckbox.checked = false;
+  }
   window.getSelection()?.removeAllRanges();
+}
+
+function isArticleScopeSelected() {
+  return state.mode === "issue" && Boolean(elements.articleScopeCheckbox?.checked);
+}
+
+function syncArticleScopeUi() {
+  if (!isArticleScopeSelected()) {
+    if (!state.selection) {
+      elements.selectedText.textContent = "No text selected yet.";
+    }
+    return;
+  }
+
+  state.selection = null;
+  window.getSelection()?.removeAllRanges();
+  elements.selectedText.textContent = "Entire article";
 }
 
 function renderAnnotations() {
@@ -553,8 +593,11 @@ function renderAnnotations() {
       : "rgba(246, 200, 95, 0.28)";
     chip.style.color = isIssue ? "#8a1e18" : "#9a6500";
 
-    range.textContent = `${capitalizeSection(annotation.section)} ${annotation.start}-${annotation.end}`;
-    quote.textContent = `"${annotation.text}"`;
+    const isArticleScope = annotation.scope === "article";
+    range.textContent = isArticleScope
+      ? "Entire article"
+      : `${capitalizeSection(annotation.section)} ${annotation.start}-${annotation.end}`;
+    quote.textContent = isArticleScope ? "Entire article" : `"${annotation.text}"`;
     note.textContent = annotation.secondaryComment
       ? `${annotation.primaryCommentLabel}: ${annotation.primaryComment}\nQuestion(s) to ask: ${annotation.secondaryComment}`
       : `${annotation.primaryCommentLabel}: ${annotation.primaryComment}`;
@@ -590,7 +633,8 @@ function openEditAnnotationModal(annotationId) {
 
   const isIssue = annotation.type === "issue";
   elements.editAnnotationModal.dataset.annotationId = annotation.id;
-  elements.editAnnotationText.textContent = `"${annotation.text}"`;
+  elements.editAnnotationText.textContent =
+    annotation.scope === "article" ? "Entire article" : `"${annotation.text}"`;
   elements.editPrimaryLabel.textContent = annotation.primaryCommentLabel;
   elements.editPrimaryComment.value = annotation.primaryComment;
   elements.editSecondaryField.classList.toggle("is-hidden", !isIssue);
@@ -664,6 +708,9 @@ function refreshAnnotationMarks() {
   elements.articleTitle.textContent = article.title;
   renderArticleParagraphs(article.paragraphs);
   state.currentAnnotations.forEach((annotation) => {
+    if (annotation.scope === "article") {
+      return;
+    }
     wrapSelection(annotation);
   });
 }

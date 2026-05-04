@@ -893,6 +893,28 @@ textarea {
   overflow-wrap: anywhere;
 }
 
+.article-scope-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: -4px 0 2px;
+  color: var(--ink);
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.article-scope-option input {
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  accent-color: var(--accent);
+  flex: 0 0 auto;
+}
+
+.article-scope-option.is-hidden {
+  display: none;
+}
+
 .severity-panel.is-hidden {
   display: none;
 }
