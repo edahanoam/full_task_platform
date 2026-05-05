@@ -16,6 +16,8 @@ const state = {
   priorJournalismExperience: "",
   qualificationFeedback: "",
   sessionId: getLocalSessionId(),
+  startTime: null,
+  endTime: null,
 };
 
 const modeConfig = {
@@ -753,6 +755,7 @@ async function finalizeCurrentArticle() {
 
   await showQualificationFeedbackPrompt();
 
+  markTaskCompleted();
   showSubmissionNote("All articles are complete. Your responses have been saved.", false);
   state.currentAnnotations = [];
   renderAnnotations();
@@ -779,6 +782,9 @@ function buildSubmissionPayload() {
   return {
     participantId: elements.participantId.value.trim(),
     sessionId: state.sessionId,
+    startTime: state.startTime,
+    endTime: state.endTime,
+    durationSeconds: getTaskDurationSeconds(),
     priorJournalismExperience: state.priorJournalismExperience,
     qualificationFeedback: state.qualificationFeedback,
     totalArticles: articles.length,
@@ -792,6 +798,32 @@ function buildSubmissionPayload() {
             buildArticlePayload(currentArticle, state.currentAnnotations),
           ],
   };
+}
+
+function markTaskStarted() {
+  if (!state.startTime) {
+    state.startTime = new Date().toISOString();
+  }
+}
+
+function markTaskCompleted() {
+  if (!state.endTime) {
+    state.endTime = new Date().toISOString();
+  }
+}
+
+function getTaskDurationSeconds() {
+  if (!state.startTime) {
+    return null;
+  }
+
+  const endTime = state.endTime || new Date().toISOString();
+  const elapsedMilliseconds = new Date(endTime).getTime() - new Date(state.startTime).getTime();
+  if (!Number.isFinite(elapsedMilliseconds) || elapsedMilliseconds < 0) {
+    return null;
+  }
+
+  return Math.round(elapsedMilliseconds / 1000);
 }
 
 function buildArticlePayload(article, annotations) {
@@ -852,6 +884,7 @@ async function showPriorExperiencePrompt() {
 
   elements.participantId.value = response.participantId;
   state.priorJournalismExperience = response.text;
+  markTaskStarted();
   renderSubmission();
   scheduleServerSave("prior-journalism-experience-added");
 }
