@@ -1,5 +1,5 @@
-const DATASET_PATH = "./UFOGenZ.jsonl";
-const DATASET_CACHE_BUSTER = "ufo-genz-20260501";
+const DATASET_PATH = "./genz_next_two_articles.jsonl";
+const DATASET_CACHE_BUSTER = "genz-next-two-20260505";
 const ANNOTATION_SAVE_PATH = "/api/annotations/save";
 const LOCAL_SESSION_KEY = "annotation_task_session_id";
 const SAVE_DEBOUNCE_MS = 700;
