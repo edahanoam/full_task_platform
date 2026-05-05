@@ -167,14 +167,14 @@ elements.saveButton.addEventListener("click", () => {
 
   const primaryComment = elements.primaryCommentInput.value.trim();
   if (!primaryComment) {
-    window.alert("Add the first comment before saving.");
+    window.alert("Add a takeaway before saving.");
     return;
   }
 
   const secondaryComment =
     state.mode === "issue" ? elements.secondaryCommentInput.value.trim() : "";
   if (state.mode === "issue" && !secondaryComment) {
-    window.alert("Add the second comment for issue annotations before saving.");
+    window.alert("Add the question before saving.");
     return;
   }
 
