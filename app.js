@@ -194,15 +194,9 @@ elements.saveButton.addEventListener("click", () => {
     createdAt: new Date().toISOString(),
   };
 
-  if (!isArticleScope && hasOverlap(annotation.section, annotation.start, annotation.end)) {
-    window.alert("This prototype does not allow overlapping annotations yet.");
-    return;
-  }
-
-  const selectionRange = isArticleScope ? null : state.selection.range?.cloneRange();
   state.currentAnnotations.push(annotation);
   if (!isArticleScope) {
-    wrapSelection(annotation, selectionRange);
+    refreshAnnotationMarks();
   }
   clearDraft();
   renderAnnotations();
@@ -511,17 +505,90 @@ function loadCurrentArticle() {
 }
 
 function renderArticleParagraphs(paragraphs) {
-  elements.article.replaceChildren();
-
-  paragraphs.forEach((paragraph) => {
-    elements.article.appendChild(createParagraph(paragraph));
-  });
+  renderAnnotatedBody(paragraphs);
 }
 
 function createParagraph(text) {
   const paragraph = document.createElement("p");
   paragraph.textContent = text;
   return paragraph;
+}
+
+function renderAnnotatedBody(paragraphs) {
+  elements.article.replaceChildren();
+
+  let startOffset = 0;
+  paragraphs.forEach((paragraphText) => {
+    const paragraph = document.createElement("p");
+    renderAnnotatedText(paragraph, paragraphText, "body", startOffset);
+    elements.article.appendChild(paragraph);
+    startOffset += paragraphText.length;
+  });
+}
+
+function renderAnnotatedText(container, text, section, baseOffset) {
+  container.replaceChildren();
+  const boundaries = getAnnotationBoundaries(text.length, section, baseOffset);
+
+  for (let index = 0; index < boundaries.length - 1; index += 1) {
+    const start = boundaries[index];
+    const end = boundaries[index + 1];
+    const content = text.slice(start, end);
+    if (!content) {
+      continue;
+    }
+
+    const annotation = getLatestAnnotationForRange(section, baseOffset + start, baseOffset + end);
+    if (!annotation) {
+      container.appendChild(document.createTextNode(content));
+      continue;
+    }
+
+    const mark = document.createElement("mark");
+    mark.className = "annotation-mark";
+    mark.dataset.type = annotation.type;
+    mark.dataset.annotationId = annotation.id;
+    mark.textContent = content;
+    container.appendChild(mark);
+  }
+}
+
+function getAnnotationBoundaries(textLength, section, baseOffset) {
+  const boundaries = new Set([0, textLength]);
+  const sectionStart = baseOffset;
+  const sectionEnd = baseOffset + textLength;
+
+  state.currentAnnotations.forEach((annotation) => {
+    if (
+      annotation.scope === "article" ||
+      annotation.section !== section ||
+      annotation.end <= sectionStart ||
+      annotation.start >= sectionEnd
+    ) {
+      return;
+    }
+
+    boundaries.add(Math.max(annotation.start, sectionStart) - baseOffset);
+    boundaries.add(Math.min(annotation.end, sectionEnd) - baseOffset);
+  });
+
+  return Array.from(boundaries).sort((first, second) => first - second);
+}
+
+function getLatestAnnotationForRange(section, start, end) {
+  for (let index = state.currentAnnotations.length - 1; index >= 0; index -= 1) {
+    const annotation = state.currentAnnotations[index];
+    if (
+      annotation.scope !== "article" &&
+      annotation.section === section &&
+      annotation.start < end &&
+      annotation.end > start
+    ) {
+      return annotation;
+    }
+  }
+
+  return null;
 }
 
 function syncModeUi() {
@@ -707,14 +774,8 @@ function refreshAnnotationMarks() {
     return;
   }
 
-  elements.articleTitle.textContent = article.title;
-  renderArticleParagraphs(article.paragraphs);
-  state.currentAnnotations.forEach((annotation) => {
-    if (annotation.scope === "article") {
-      return;
-    }
-    wrapSelection(annotation);
-  });
+  renderAnnotatedText(elements.articleTitle, article.title, "title", 0);
+  renderAnnotatedBody(article.paragraphs);
 }
 
 function renderSubmission() {
@@ -1001,71 +1062,6 @@ function openFreeformPrompt(config) {
   });
 }
 
-function wrapSelection(annotation, selectionRange) {
-  const range =
-    selectionRange ||
-    createRangeFromOffsets(
-      getSelectionContainer(annotation.section),
-      annotation.start,
-      annotation.end,
-    );
-  if (!range) {
-    return;
-  }
-
-  const textRanges = getTextNodeRangesWithinRange(range);
-
-  textRanges.forEach((textRange) => {
-    const mark = document.createElement("mark");
-    mark.className = "annotation-mark";
-    mark.dataset.type = annotation.type;
-    mark.dataset.annotationId = annotation.id;
-    const content = textRange.extractContents();
-    mark.appendChild(content);
-    textRange.insertNode(mark);
-  });
-}
-
-function getTextNodeRangesWithinRange(range) {
-  const container = range.commonAncestorContainer;
-  const root =
-    container.nodeType === Node.TEXT_NODE ? container.parentNode : container;
-  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-    acceptNode(node) {
-      if (!node.textContent.trim()) {
-        return NodeFilter.FILTER_REJECT;
-      }
-
-      return range.intersectsNode(node)
-        ? NodeFilter.FILTER_ACCEPT
-        : NodeFilter.FILTER_REJECT;
-    },
-  });
-
-  const textRanges = [];
-  let node;
-
-  while ((node = walker.nextNode())) {
-    const textRange = document.createRange();
-    const startOffset = node === range.startContainer ? range.startOffset : 0;
-    const endOffset = node === range.endContainer ? range.endOffset : node.textContent.length;
-
-    if (startOffset === endOffset) {
-      continue;
-    }
-
-    textRange.setStart(node, startOffset);
-    textRange.setEnd(node, endOffset);
-    textRanges.push(textRange);
-  }
-
-  if (textRanges.length === 0 && range.startContainer === range.endContainer) {
-    textRanges.push(range.cloneRange());
-  }
-
-  return textRanges.reverse();
-}
-
 function getSelectionSection(range) {
   if (isRangeInsideContainer(range, elements.articleTitle)) {
     return "title";
@@ -1087,47 +1083,60 @@ function getSelectionContainer(section) {
 }
 
 function getSelectionOffsets(range, container) {
-  const preRange = range.cloneRange();
-  preRange.selectNodeContents(container);
-  preRange.setEnd(range.startContainer, range.startOffset);
+  const start = getTextOffset(container, range.startContainer, range.startOffset);
+  const end = getTextOffset(container, range.endContainer, range.endOffset);
 
-  const start = preRange.toString().length;
-  const end = start + range.toString().length;
+  if (start === null || end === null) {
+    return null;
+  }
 
   return { start, end };
 }
 
-function createRangeFromOffsets(container, start, end) {
-  const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
-  const range = document.createRange();
-  let currentOffset = 0;
-  let startSet = false;
-  let node;
+function getTextOffset(container, boundaryNode, boundaryOffset) {
+  const result = getTextOffsetFromNode(container, boundaryNode, boundaryOffset, 0);
 
-  while ((node = walker.nextNode())) {
-    const nextOffset = currentOffset + node.textContent.length;
-
-    if (!startSet && start >= currentOffset && start <= nextOffset) {
-      range.setStart(node, start - currentOffset);
-      startSet = true;
-    }
-
-    if (startSet && end >= currentOffset && end <= nextOffset) {
-      range.setEnd(node, end - currentOffset);
-      return range;
-    }
-
-    currentOffset = nextOffset;
-  }
-
-  return null;
+  return result.found ? result.offset : null;
 }
 
-function hasOverlap(section, start, end) {
-  return state.currentAnnotations.some(
-    (annotation) =>
-      annotation.section === section && start < annotation.end && end > annotation.start,
-  );
+function getTextOffsetFromNode(node, boundaryNode, boundaryOffset, currentOffset) {
+  if (node === boundaryNode) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      return {
+        found: true,
+        offset: currentOffset + boundaryOffset,
+      };
+    }
+
+    let offset = currentOffset;
+    for (let index = 0; index < boundaryOffset; index += 1) {
+      offset += getNodeTextLength(node.childNodes[index]);
+    }
+
+    return { found: true, offset };
+  }
+
+  if (node.nodeType === Node.TEXT_NODE) {
+    return {
+      found: false,
+      offset: currentOffset + node.textContent.length,
+    };
+  }
+
+  let offset = currentOffset;
+  for (const childNode of node.childNodes) {
+    const result = getTextOffsetFromNode(childNode, boundaryNode, boundaryOffset, offset);
+    if (result.found) {
+      return result;
+    }
+    offset = result.offset;
+  }
+
+  return { found: false, offset };
+}
+
+function getNodeTextLength(node) {
+  return node ? node.textContent.length : 0;
 }
 
 function capitalizeSection(section) {
