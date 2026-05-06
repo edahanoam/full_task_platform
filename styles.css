@@ -289,7 +289,7 @@ textarea {
   order: 1;
 }
 
-.sidebar-annotation-panel {
+.sidebar-annotations-panel {
   order: 2;
 }
 
@@ -314,6 +314,36 @@ textarea {
 
 .article-meta {
   margin-bottom: 36px;
+}
+
+.article-annotation-composer {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(31, 27, 22, 0.04);
+  border: 1px solid rgba(31, 27, 22, 0.06);
+}
+
+.article-mode-toolbar {
+  display: grid;
+  gap: 10px;
+}
+
+.toolbar-label {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.annotation-fields-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
 }
 
 .brand-block h1,
@@ -1031,6 +1061,10 @@ textarea {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 16px;
+}
+
+.sidebar-annotation-list {
+  grid-template-columns: 1fr;
 }
 
 .annotation-item {

@@ -373,69 +373,13 @@ You will be presented with news articles to assess according to your professiona
           </label> -->
         </section>
 
-        <section class="panel sidebar-annotation-panel">
+        <section class="panel sidebar-annotations-panel">
           <div class="panel-header">
-            <h2>Annotation mode</h2>
-            <p>Select text first, then save the annotation.</p>
+            <h2>Saved annotations</h2>
+            <p>Annotations already added for this article.</p>
           </div>
-
-          <div class="mode-switch" role="tablist" aria-label="Annotation mode">
-            <button class="mode-button is-active" data-mode="comment" type="button">
-              Factual Takeaway
-            </button>
-            <button class="mode-button" data-mode="issue" type="button">
-              Point of Concern
-            </button>
-          </div>
-
-          <div class="selection-card" id="selection-card">
-            <p class="selection-label">Selected text</p>
-            <p id="selected-text" class="selection-text">No text selected yet.</p>
-          </div>
-
-          <label id="article-scope-field" class="article-scope-option is-hidden">
-            <input id="article-scope-checkbox" type="checkbox" />
-            <span>Concern applies to the entire article</span>
-          </label>
-
-          <label class="field">
-            <span id="primary-comment-label">Factual takeaway</span>
-            <textarea
-              id="annotation-comment-primary"
-              rows="4"
-              placeholder="Describe the main factual takeaway from this span in your own words."
-            ></textarea>
-          </label>
-
-          <label id="secondary-comment-field" class="field is-hidden">
-            <span>Question</span>
-            <textarea
-              id="annotation-comment-secondary"
-              rows="4"
-              placeholder="What question(s) should a reader ask to better assess the takeaways from this span?"
-            ></textarea>
-          </label>
-
-          <div id="severity-panel" class="severity-panel is-hidden">
-            <div class="panel-header compact">
-              <h3>Severity of this concern</h3>
-              <p class="severity-hint">Drag the handle to choose a score from 1 to 5.</p>
-            </div>
-            <input id="severity-input" type="range" min="1" max="5" value="3" />
-            <div class="severity-scale">
-              <span>minor issue</span>
-              <strong id="severity-value">3</strong>
-              <span>major issue</span>
-            </div>
-          </div>
-
-          <div class="actions">
-            <button id="save-annotation" class="primary-button" type="button">
-              Save annotation
-            </button>
-            <button id="clear-selection" class="ghost-button" type="button">
-              Clear selection
-            </button>
+          <div id="annotation-list" class="annotation-list sidebar-annotation-list">
+            <p class="empty-state">No annotations yet.</p>
           </div>
         </section>
 
@@ -468,14 +412,79 @@ You will be presented with news articles to assess according to your professiona
           </article>
         </section>
 
-        <section class="annotations-panel">
+        <section class="annotations-panel annotation-composer-panel">
           <div class="panel-header">
-            <h2>Saved annotations for this article</h2>
-            <!-- <p>Each saved item includes offsets, quoted text, and task metadata.</p> -->
+            <h2>Add annotation</h2>
+            <p>Select text in the article, then complete the annotation here.</p>
           </div>
-          <div id="annotation-list" class="annotation-list">
-            <p class="empty-state">No annotations yet.</p>
-          </div>
+
+          <section class="article-annotation-composer" aria-label="Annotation composer">
+            <div class="article-mode-toolbar" aria-label="Annotation mode">
+              <div>
+                <p class="toolbar-label">Annotation mode</p>
+              </div>
+              <div class="mode-switch" role="tablist" aria-label="Annotation mode">
+                <button class="mode-button is-active" data-mode="comment" type="button">
+                  Factual Takeaway
+                </button>
+                <button class="mode-button" data-mode="issue" type="button">
+                  Point of Concern
+                </button>
+              </div>
+            </div>
+
+            <div class="selection-card" id="selection-card">
+              <p class="selection-label">Selected text</p>
+              <p id="selected-text" class="selection-text">No text selected yet.</p>
+            </div>
+
+            <label id="article-scope-field" class="article-scope-option is-hidden">
+              <input id="article-scope-checkbox" type="checkbox" />
+              <span>Concern applies to the entire article</span>
+            </label>
+
+            <div id="annotation-fields-grid" class="annotation-fields-grid">
+              <label class="field">
+                <span id="primary-comment-label">Factual takeaway</span>
+                <textarea
+                  id="annotation-comment-primary"
+                  rows="4"
+                  placeholder="Describe the main factual takeaway from this span in your own words."
+                ></textarea>
+              </label>
+
+              <label id="secondary-comment-field" class="field is-hidden">
+                <span>Question</span>
+                <textarea
+                  id="annotation-comment-secondary"
+                  rows="4"
+                  placeholder="What question(s) should a reader ask to better assess the takeaways from this span?"
+                ></textarea>
+              </label>
+            </div>
+
+            <div id="severity-panel" class="severity-panel is-hidden">
+              <div class="panel-header compact">
+                <h3>Severity of this concern</h3>
+                <p class="severity-hint">Drag the handle to choose a score from 1 to 5.</p>
+              </div>
+              <input id="severity-input" type="range" min="1" max="5" value="3" />
+              <div class="severity-scale">
+                <span>minor issue</span>
+                <strong id="severity-value">3</strong>
+                <span>major issue</span>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button id="save-annotation" class="primary-button" type="button">
+                Save annotation
+              </button>
+              <button id="clear-selection" class="ghost-button" type="button">
+                Clear selection
+              </button>
+            </div>
+          </section>
         </section>
       </main>
     </div>
@@ -627,7 +636,7 @@ You will be presented with news articles to assess according to your professiona
       <a href="https://data-protection.mpi-klsb.mpg.de/sws/critical-news-annotation">Data Protection</a>
     </footer>
 
-    <script src="./app.js?v=8"></script>
+    <script src="./app.js?v=14"></script>
   </body>
 </html>
 

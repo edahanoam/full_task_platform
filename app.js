@@ -55,6 +55,7 @@ const elements = {
   selectedText: document.getElementById("selected-text"),
   primaryCommentLabel: document.getElementById("primary-comment-label"),
   primaryCommentInput: document.getElementById("annotation-comment-primary"),
+  annotationFieldsGrid: document.getElementById("annotation-fields-grid"),
   secondaryCommentField: document.getElementById("secondary-comment-field"),
   secondaryCommentInput: document.getElementById("annotation-comment-secondary"),
   severityPanel: document.getElementById("severity-panel"),
@@ -599,6 +600,7 @@ function syncModeUi() {
   const isIssue = state.mode === "issue";
   elements.severityPanel.classList.toggle("is-hidden", !isIssue);
   elements.secondaryCommentField.classList.toggle("is-hidden", !isIssue);
+  elements.annotationFieldsGrid?.classList.toggle("has-secondary-field", isIssue);
   elements.articleScopeField?.classList.toggle("is-hidden", !isIssue);
   elements.primaryCommentLabel.textContent = modeConfig[state.mode].primaryLabel;
   elements.primaryCommentInput.placeholder = modeConfig[state.mode].primaryPlaceholder;
