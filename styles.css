@@ -597,6 +597,15 @@ textarea {
   font-size: 0.95rem;
 }
 
+.example-severity em {
+  max-width: 26rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-style: normal;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
 
 #article-byline {
   display: none;
