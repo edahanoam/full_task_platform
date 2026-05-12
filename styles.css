@@ -247,6 +247,18 @@ textarea {
   background: #111;
 }
 
+.walkthrough-video-link {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.walkthrough-video-link a {
+  color: var(--accent-strong);
+  font-weight: 700;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+
 .walkthrough-step-card {
   display: grid;
   gap: 18px;
