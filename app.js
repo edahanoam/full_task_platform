@@ -15,6 +15,10 @@ const state = {
   finalizedArticles: [],
   priorJournalismExperience: "",
   qualificationFeedback: "",
+  pasteCounts: {
+    takeaway: 0,
+    question: 0,
+  },
   sessionId: getLocalSessionId(),
   startTime: null,
   endTime: null,
@@ -235,6 +239,11 @@ elements.editAnnotationSave?.addEventListener("click", saveEditedAnnotation);
 elements.editAnnotationCancel?.addEventListener("click", closeEditAnnotationModal);
 elements.editAnnotationCancelTop?.addEventListener("click", closeEditAnnotationModal);
 elements.editAnnotationBackdrop?.addEventListener("click", closeEditAnnotationModal);
+
+elements.primaryCommentInput?.addEventListener("paste", () => recordPaste("takeaway"));
+elements.secondaryCommentInput?.addEventListener("paste", () => recordPaste("question"));
+elements.editPrimaryComment?.addEventListener("paste", () => recordPaste("takeaway"));
+elements.editSecondaryComment?.addEventListener("paste", () => recordPaste("question"));
 
 elements.finalizeButton?.addEventListener("click", async () => {
   if (articles.length === 0) {
@@ -848,6 +857,9 @@ function buildSubmissionPayload() {
     durationSeconds: getTaskDurationSeconds(),
     priorJournalismExperience: state.priorJournalismExperience,
     qualificationFeedback: state.qualificationFeedback,
+    pasteCounts: {
+      ...state.pasteCounts,
+    },
     totalArticles: articles.length,
     completedArticles: state.finalizedArticles.length,
     currentArticleId: allArticlesCompleted || !currentArticle ? null : currentArticle.id,
@@ -1145,6 +1157,16 @@ function capitalizeSection(section) {
 
 function getAnnotationCount(type, annotations) {
   return annotations.filter((annotation) => annotation.type === type).length;
+}
+
+function recordPaste(field) {
+  if (!Object.prototype.hasOwnProperty.call(state.pasteCounts, field)) {
+    return;
+  }
+
+  state.pasteCounts[field] += 1;
+  renderSubmission();
+  scheduleServerSave(`${field}-pasted`);
 }
 
 function showSubmissionNote(message, isWarning) {
