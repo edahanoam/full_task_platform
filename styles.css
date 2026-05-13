@@ -84,6 +84,31 @@ textarea {
   line-height: 1.6;
 }
 
+.completion-code {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 18px 20px;
+  border: 1px solid rgba(10, 122, 109, 0.26);
+  border-radius: 14px;
+  background: rgba(10, 122, 109, 0.08);
+}
+
+.completion-code span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.completion-code strong {
+  font-size: clamp(1.75rem, 4vw, 2.6rem);
+  line-height: 1;
+  letter-spacing: 0.08em;
+}
+
 .intro-card h1 {
   margin: 0;
   font-family: var(--font-serif);
