@@ -13,7 +13,6 @@ const state = {
   currentArticleIndex: 0,
   currentAnnotations: [],
   finalizedArticles: [],
-  priorJournalismExperience: "",
   qualificationFeedback: "",
   pasteCounts: {
     takeaway: 0,
@@ -44,6 +43,7 @@ const elements = {
   completionScreen: document.getElementById("completion-screen"),
   guidelinesSource: document.querySelector("#guidelines-screen .intro-copy"),
   guidelinesSourceLead: document.querySelector("#guidelines-screen .intro-card > h3"),
+  platformSource: document.querySelector("#platform-screen .intro-card"),
   guidelinesContinue: document.getElementById("guidelines-continue"),
   platformBack: document.getElementById("platform-back"),
   platformContinue: document.getElementById("platform-continue"),
@@ -56,6 +56,11 @@ const elements = {
   guidelinesModalBackdrop: document.getElementById("guidelines-modal-backdrop"),
   guidelinesModalClose: document.getElementById("guidelines-modal-close"),
   guidelinesModalContent: document.getElementById("guidelines-modal-content"),
+  platformToggle: document.getElementById("platform-toggle"),
+  platformModal: document.getElementById("platform-modal"),
+  platformModalBackdrop: document.getElementById("platform-modal-backdrop"),
+  platformModalClose: document.getElementById("platform-modal-close"),
+  platformModalContent: document.getElementById("platform-modal-content"),
   selectedText: document.getElementById("selected-text"),
   primaryCommentLabel: document.getElementById("primary-comment-label"),
   primaryCommentInput: document.getElementById("annotation-comment-primary"),
@@ -84,6 +89,7 @@ const elements = {
   freeformParticipantId: document.getElementById("freeform-modal-participant-id"),
   freeformLabel: document.getElementById("freeform-modal-label"),
   freeformInput: document.getElementById("freeform-modal-input"),
+  freeformResponseField: document.getElementById("freeform-modal-input")?.closest(".field"),
   freeformError: document.getElementById("freeform-modal-error"),
   freeformSkip: document.getElementById("freeform-modal-skip"),
   freeformSubmit: document.getElementById("freeform-modal-submit"),
@@ -135,9 +141,20 @@ elements.guidelinesToggle?.addEventListener("click", () => {
 elements.guidelinesModalClose?.addEventListener("click", closeGuidelinesModal);
 elements.guidelinesModalBackdrop?.addEventListener("click", closeGuidelinesModal);
 
+elements.platformToggle?.addEventListener("click", () => {
+  openPlatformModal();
+});
+
+elements.platformModalClose?.addEventListener("click", closePlatformModal);
+elements.platformModalBackdrop?.addEventListener("click", closePlatformModal);
+
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !elements.guidelinesModal?.classList.contains("is-hidden")) {
     closeGuidelinesModal();
+  }
+
+  if (event.key === "Escape" && !elements.platformModal?.classList.contains("is-hidden")) {
+    closePlatformModal();
   }
 
   if (
@@ -345,7 +362,8 @@ syncModeUi();
 renderAnnotations();
 renderSubmission();
 hydrateGuidelinesModal();
-showPriorExperiencePrompt();
+hydratePlatformModal();
+showParticipantIdPrompt();
 initApp();
 
 async function initApp() {
@@ -377,9 +395,6 @@ async function initApp() {
     clearDraft();
     showSubmissionNote("", false);
     loadCurrentArticle();
-    if (state.priorJournalismExperience) {
-      scheduleServerSave("prior-journalism-experience-added");
-    }
   } catch (error) {
     showDatasetError(error);
   }
@@ -431,6 +446,63 @@ function closeGuidelinesModal() {
   elements.guidelinesModal.classList.add("is-hidden");
   document.body.classList.remove("modal-open");
   elements.guidelinesToggle?.setAttribute("aria-expanded", "false");
+}
+
+function showGuidelinesScreen() {
+  elements.freeformModal?.classList.add("is-hidden");
+  document.body.classList.remove("modal-open");
+  elements.guidelinesScreen?.classList.remove("is-hidden");
+  elements.platformScreen?.classList.add("is-hidden");
+  elements.taskScreen?.classList.add("is-hidden");
+  elements.completionScreen?.classList.add("is-hidden");
+  window.scrollTo({ top: 0, behavior: "auto" });
+}
+
+function hydratePlatformModal() {
+  if (!elements.platformSource || !elements.platformModalContent) {
+    return;
+  }
+
+  elements.platformModalContent.innerHTML = "";
+  const titleCopy = elements.platformSource.querySelector(".walkthrough-title-block p:not(.eyebrow)");
+  if (titleCopy) {
+    const lead = document.createElement("p");
+    lead.className = "modal-lede";
+    lead.textContent = titleCopy.textContent;
+    elements.platformModalContent.appendChild(lead);
+  }
+
+  [".walkthrough-video-section", ".walkthrough-stack"].forEach((selector) => {
+    const sourceNode = elements.platformSource.querySelector(selector);
+    if (!sourceNode) {
+      return;
+    }
+
+    const clone = sourceNode.cloneNode(true);
+    clone.querySelectorAll("[id]").forEach((node) => node.removeAttribute("id"));
+    elements.platformModalContent.appendChild(clone);
+  });
+}
+
+function openPlatformModal() {
+  if (!elements.platformModal) {
+    return;
+  }
+
+  hydratePlatformModal();
+  elements.platformModal.classList.remove("is-hidden");
+  document.body.classList.add("modal-open");
+  elements.platformToggle?.setAttribute("aria-expanded", "true");
+}
+
+function closePlatformModal() {
+  if (!elements.platformModal) {
+    return;
+  }
+
+  elements.platformModal.classList.add("is-hidden");
+  document.body.classList.remove("modal-open");
+  elements.platformToggle?.setAttribute("aria-expanded", "false");
 }
 
 function showDatasetError(error) {
@@ -855,7 +927,6 @@ function buildSubmissionPayload() {
     startTime: state.startTime,
     endTime: state.endTime,
     durationSeconds: getTaskDurationSeconds(),
-    priorJournalismExperience: state.priorJournalismExperience,
     qualificationFeedback: state.qualificationFeedback,
     pasteCounts: {
       ...state.pasteCounts,
@@ -941,25 +1012,26 @@ function validateAnnotations(annotations) {
   };
 }
 
-async function showPriorExperiencePrompt() {
+async function showParticipantIdPrompt() {
   const response = await openFreeformPrompt({
     eyebrow: "Before you begin",
     title: "Participant details",
-    description: "Please enter your participant ID and briefly describe (1–2 sentences) your prior journalism experience.",
-    label: "Prior journalism experience",
-    placeholder: "Example: I worked as a professional journalist for two years at a leading english-language publication in Europe.",
+    description: "Please enter your participant ID before starting the task.",
+    label: "",
+    placeholder: "",
     submitLabel: "Continue",
     required: true,
     includeParticipantId: true,
-    errorMessage: "Please enter your participant ID and 1–2 sentences before continuing.",
+    hideResponse: true,
+    errorMessage: "Please enter your participant ID before continuing.",
   });
 
 
   elements.participantId.value = response.participantId;
-  state.priorJournalismExperience = response.text;
+  showGuidelinesScreen();
   markTaskStarted();
   renderSubmission();
-  scheduleServerSave("prior-journalism-experience-added");
+  scheduleServerSave("participant-id-added");
 }
 
 async function showQualificationFeedbackPrompt() {
@@ -997,6 +1069,7 @@ function openFreeformPrompt(config) {
   elements.freeformLabel.textContent = config.label;
   elements.freeformInput.value = "";
   elements.freeformInput.placeholder = config.placeholder || "";
+  elements.freeformResponseField?.classList.toggle("is-hidden", Boolean(config.hideResponse));
   elements.freeformSubmit.textContent = config.submitLabel || "Continue";
   elements.freeformSkip.textContent = config.skipLabel || "Skip";
   elements.freeformSkip.classList.toggle("is-hidden", config.required);
@@ -1011,7 +1084,9 @@ function openFreeformPrompt(config) {
       return;
     }
 
-    elements.freeformInput.focus();
+    if (!config.hideResponse) {
+      elements.freeformInput.focus();
+    }
   }, 0);
 
   return new Promise((resolve) => {
@@ -1037,13 +1112,16 @@ function openFreeformPrompt(config) {
     };
 
     const handleSubmit = () => {
-      const value = elements.freeformInput.value.trim();
+      const value = config.hideResponse ? "" : elements.freeformInput.value.trim();
       const participantId = elements.freeformParticipantId.value.trim();
       if (
         config.required &&
-        (!value || (config.includeParticipantId && !participantId))
+        ((!config.hideResponse && !value) || (config.includeParticipantId && !participantId))
       ) {
-        elements.freeformError.textContent = config.errorMessage || "Please enter a response.";
+        elements.freeformError.textContent =
+          config.hideResponse
+            ? "Please enter your participant ID before continuing."
+            : config.errorMessage || "Please enter a response.";
         elements.freeformError.classList.remove("is-hidden");
         if (config.includeParticipantId && !participantId) {
           elements.freeformParticipantId.focus();

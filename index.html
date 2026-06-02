@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="./styles.css?v=7" />
   </head>
   <body>
-    <section id="guidelines-screen" class="intro-screen">
+    <section id="guidelines-screen" class="intro-screen is-hidden">
       <div class="intro-card">
         <p class="eyebrow">Guidelines</p>
         <h2>Guidelines</h2>
@@ -389,6 +389,21 @@ You will be presented with news articles to assess according to your professiona
           </p> -->
         </section>
 
+        <section class="panel sidebar-platform-panel">
+          <div class="panel-header">
+            <h3>How to use the platform</h3>
+            <button
+              id="platform-toggle"
+              class="ghost-button guidelines-toggle"
+              type="button"
+              aria-expanded="false"
+              aria-controls="platform-modal"
+            >
+              Show platform guide
+            </button>
+          </div>
+        </section>
+
         <section class="panel sidebar-id-panel">
           <h3>Participant ID</h3>
           <label class="field">
@@ -545,6 +560,28 @@ You will be presented with news articles to assess according to your professiona
     </section>
 
     <section
+      id="platform-modal"
+      class="modal-shell is-hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="platform-modal-title"
+    >
+      <div id="platform-modal-backdrop" class="modal-backdrop"></div>
+      <div class="modal-card">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow">Platform walkthrough</p>
+            <h2 id="platform-modal-title">How To Use The Platform</h2>
+          </div>
+          <button id="platform-modal-close" class="ghost-button modal-close" type="button">
+            Close
+          </button>
+        </div>
+        <div id="platform-modal-content" class="modal-content"></div>
+      </div>
+    </section>
+
+    <section
       id="freeform-modal"
       class="modal-shell is-hidden"
       role="dialog"
@@ -557,12 +594,12 @@ You will be presented with news articles to assess according to your professiona
         <div class="modal-header">
           <div>
             <p id="freeform-modal-eyebrow" class="eyebrow">Before you begin</p>
-            <h2 id="freeform-modal-title">Journalism experience</h2>
+            <h2 id="freeform-modal-title">Participant details</h2>
           </div>
         </div>
         <div class="modal-content freeform-modal-content">
           <p id="freeform-modal-description" class="modal-lede">
-            Please describe in 1-2 sentences your prior journalism experience.
+            Please enter your participant ID before starting the task.
           </p>
           <label id="freeform-modal-participant-field" class="field is-hidden">
             <span>Participant ID</span>
@@ -658,7 +695,7 @@ You will be presented with news articles to assess according to your professiona
       <a href="https://data-protection.mpi-klsb.mpg.de/sws/critical-news-annotation.mpi-sws.org">Data Protection</a>
     </footer>
 
-    <script src="./app.js?v=15"></script>
+    <script src="./app.js?v=16"></script>
   </body>
 </html>
 

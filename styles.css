@@ -405,8 +405,12 @@ textarea {
   order: 3;
 }
 
-.sidebar-submit-panel {
+.sidebar-platform-panel {
   order: 4;
+}
+
+.sidebar-submit-panel {
+  order: 5;
 }
 
 .workspace {
