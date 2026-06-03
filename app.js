@@ -1143,8 +1143,9 @@ function buildArticlePayload(article, annotations) {
 function validateAnnotations(annotations) {
   const factualTakeawayCount = getAnnotationCount("comment", annotations);
   const pointOfConcernCount = getAnnotationCount("issue", annotations);
+  const isTestParticipant = elements.participantId.value.trim().toLowerCase() === "test";
 
-  if (factualTakeawayCount < 2) {
+  if (!isTestParticipant && factualTakeawayCount < 2) {
     return {
       ok: false,
       message: "Please add at least 2 factual takeaways before submitting this article.",
