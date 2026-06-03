@@ -584,11 +584,12 @@ function normalizeArticle(item, index) {
     return null;
   }
 
+  const rowId = item.row_id ?? index + 1;
   const rawId = item.ID ?? item.id ?? item.articleId ?? index;
   const source = item.source || item.publisher || item.outlet || "";
 
   return {
-    id: `candidate${index}-${String(rawId)}`,
+    id: `row-${String(rowId).padStart(5, "0")}`,
     originalId: String(rawId),
     title: heading,
     source,
