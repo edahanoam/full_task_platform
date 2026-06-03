@@ -1,10 +1,13 @@
-const DATASET_PATH = "./genz_next_two_articles.jsonl";
-const DATASET_CACHE_BUSTER = "genz-next-two-20260505";
+const DATASET_PATH = "./samplefrom5withkeys.jsonl";
+const DATASET_CACHE_BUSTER = "article-choice-sample-20260603";
 const ANNOTATION_SAVE_PATH = "/api/annotations/save";
 const LOCAL_SESSION_KEY = "annotation_task_session_id";
-const TASK_VERSION = "id-guidelines-platform-task-20260602";
+const TASK_VERSION = "article-choice-task-20260603";
+const ARTICLE_CHOICES_PER_ROUND = 4;
+const ARTICLES_PER_TASK = 5;
 const SAVE_DEBOUNCE_MS = 700;
 
+let articleCandidates = [];
 let articles = [];
 let saveDebounceTimer = null;
 
@@ -12,6 +15,7 @@ const state = {
   mode: "comment",
   selection: null,
   currentArticleIndex: 0,
+  currentChoiceOptions: [],
   currentAnnotations: [],
   finalizedArticles: [],
   qualificationFeedback: "",
@@ -41,6 +45,7 @@ const modeConfig = {
 const elements = {
   guidelinesScreen: document.getElementById("guidelines-screen"),
   platformScreen: document.getElementById("platform-screen"),
+  choiceScreen: document.getElementById("choice-screen"),
   taskScreen: document.getElementById("task-screen"),
   completionScreen: document.getElementById("completion-screen"),
   guidelinesSource: document.querySelector("#guidelines-screen .intro-copy"),
@@ -49,6 +54,8 @@ const elements = {
   guidelinesContinue: document.getElementById("guidelines-continue"),
   platformBack: document.getElementById("platform-back"),
   platformContinue: document.getElementById("platform-continue"),
+  choiceStep: document.getElementById("choice-step"),
+  articleChoiceList: document.getElementById("article-choice-list"),
   article: document.getElementById("article-content"),
   articleStep: document.getElementById("article-step"),
   articleTitle: document.getElementById("article-title"),
@@ -124,9 +131,16 @@ elements.platformBack?.addEventListener("click", () => {
 });
 
 elements.platformContinue?.addEventListener("click", () => {
-  elements.platformScreen?.classList.add("is-hidden");
-  elements.taskScreen?.classList.remove("is-hidden");
-  window.scrollTo({ top: 0, behavior: "auto" });
+  showArticleChoiceScreen();
+});
+
+elements.articleChoiceList?.addEventListener("click", (event) => {
+  const choiceCard = event.target.closest(".article-choice-card");
+  if (!choiceCard?.dataset.articleId) {
+    return;
+  }
+
+  chooseArticle(choiceCard.dataset.articleId);
 });
 
 elements.modeButtons.forEach((button) => {
@@ -378,25 +392,22 @@ async function initApp() {
       throw new Error(`Dataset request failed with status ${response.status}.`);
     }
 
-    const rawJsonl = await response.text();
-    const rawArticles = parseJsonlArticles(rawJsonl);
+    const rawDataset = await response.text();
+    const rawArticles = parseDatasetArticles(rawDataset);
     if (rawArticles.length === 0) {
       throw new Error("The dataset file does not contain any articles.");
     }
 
-    articles = rawArticles.map((article, index) => ({
-      id: `qualification${index}-${article.id}`,
-      title: article.heading,
-      byline: buildByline(article),
-      paragraphs: splitRawTextIntoParagraphs(article.text),
-    }));
+    articleCandidates = rawArticles.map(normalizeArticle).filter(Boolean);
 
     state.currentArticleIndex = 0;
+    state.currentChoiceOptions = [];
     state.currentAnnotations = [];
     state.finalizedArticles = [];
+    articles = [];
     clearDraft();
     showSubmissionNote("", false);
-    loadCurrentArticle();
+    renderSubmission();
   } catch (error) {
     showDatasetError(error);
   }
@@ -455,6 +466,7 @@ function showGuidelinesScreen() {
   document.body.classList.remove("modal-open");
   elements.guidelinesScreen?.classList.remove("is-hidden");
   elements.platformScreen?.classList.add("is-hidden");
+  elements.choiceScreen?.classList.add("is-hidden");
   elements.taskScreen?.classList.add("is-hidden");
   elements.completionScreen?.classList.add("is-hidden");
   window.scrollTo({ top: 0, behavior: "auto" });
@@ -511,7 +523,7 @@ function showDatasetError(error) {
   const details =
     window.location.protocol === "file:"
       ? `Open the project through a local web server so the browser can read ${DATASET_PATH}.`
-      : `Check that ${DATASET_PATH} is present next to index.html and contains valid JSONL.`;
+      : `Check that ${DATASET_PATH} is present next to index.html and contains article records.`;
 
   elements.articleStep.textContent = "Dataset load failed";
   elements.articleTitle.textContent = "Could not load articles";
@@ -536,19 +548,58 @@ function buildByline(article) {
   return parts.join(" | ");
 }
 
-function parseJsonlArticles(rawJsonl) {
-  return rawJsonl
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => JSON.parse(line))
-    .map((item) => ({
-      id: String(item.ID),
-      heading: item.heading,
-      source: item.source,
-      text: item.text,
+function parseDatasetArticles(rawDataset) {
+  const trimmedDataset = rawDataset.trim();
+  if (!trimmedDataset) {
+    return [];
+  }
+
+  try {
+    const parsedDataset = JSON.parse(trimmedDataset);
+    if (Array.isArray(parsedDataset)) {
+      return parsedDataset;
+    }
+
+    for (const key of ["records", "articles", "data", "items"]) {
+      if (Array.isArray(parsedDataset?.[key])) {
+        return parsedDataset[key];
+      }
+    }
+
+    return [];
+  } catch {
+    return trimmedDataset
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => JSON.parse(line));
+  }
+}
+
+function normalizeArticle(item, index) {
+  const heading = item.heading || item.title || item.headline || "";
+  const text = item.text || item.body || item.articleText || item.content || "";
+
+  if (!heading || !text) {
+    return null;
+  }
+
+  const rawId = item.ID ?? item.id ?? item.articleId ?? index;
+  const source = item.source || item.publisher || item.outlet || "";
+
+  return {
+    id: `candidate${index}-${String(rawId)}`,
+    originalId: String(rawId),
+    title: heading,
+    source,
+    byline: buildByline({
+      source,
       bias: item.bias,
-    }));
+    }),
+    paragraphs: splitRawTextIntoParagraphs(text),
+    bias: item.bias || null,
+    url: item.url || null,
+  };
 }
 
 function splitRawTextIntoParagraphs(text) {
@@ -563,21 +614,100 @@ function getCurrentArticle() {
   return articles[state.currentArticleIndex];
 }
 
+function getTargetArticleCount() {
+  return Math.min(ARTICLES_PER_TASK, articles.length + articleCandidates.length);
+}
+
+function getArticleChoiceSummary(article) {
+  const summaryText = article.paragraphs.join(" ");
+  return summaryText.length > 220 ? `${summaryText.slice(0, 220).trim()}...` : summaryText;
+}
+
+function pickArticleOptions() {
+  return [...articleCandidates]
+    .sort(() => Math.random() - 0.5)
+    .slice(0, Math.min(ARTICLE_CHOICES_PER_ROUND, articleCandidates.length));
+}
+
+function showArticleChoiceScreen() {
+  if (articleCandidates.length === 0) {
+    window.alert("No articles are available to choose from.");
+    return;
+  }
+
+  state.currentChoiceOptions = pickArticleOptions();
+  elements.articleChoiceList.replaceChildren();
+  elements.choiceStep.textContent =
+    `Article ${state.finalizedArticles.length + 1} of ${getTargetArticleCount()}`;
+
+  state.currentChoiceOptions.forEach((article) => {
+    const button = document.createElement("button");
+    button.className = "article-choice-card";
+    button.type = "button";
+    button.dataset.articleId = article.id;
+
+    const title = document.createElement("h3");
+    title.textContent = article.title;
+
+    const summary = document.createElement("p");
+    summary.className = "article-choice-summary";
+    summary.textContent = getArticleChoiceSummary(article);
+
+    button.append(title, summary);
+    elements.articleChoiceList.appendChild(button);
+  });
+
+  elements.guidelinesScreen?.classList.add("is-hidden");
+  elements.platformScreen?.classList.add("is-hidden");
+  elements.choiceScreen?.classList.remove("is-hidden");
+  elements.taskScreen?.classList.add("is-hidden");
+  elements.completionScreen?.classList.add("is-hidden");
+  window.scrollTo({ top: 0, behavior: "auto" });
+}
+
+function chooseArticle(articleId) {
+  const selectedArticle = state.currentChoiceOptions.find((article) => article.id === articleId);
+  if (!selectedArticle) {
+    return;
+  }
+
+  articleCandidates = articleCandidates.filter((article) => article.id !== selectedArticle.id);
+  articles.push({
+    ...selectedArticle,
+    choiceSet: state.currentChoiceOptions.map((article) => ({
+      articleId: article.id,
+      originalId: article.originalId,
+      title: article.title,
+      source: article.source,
+      bias: article.bias,
+      url: article.url,
+    })),
+  });
+  state.currentArticleIndex = articles.length - 1;
+  state.currentChoiceOptions = [];
+  state.currentAnnotations = [];
+
+  elements.choiceScreen?.classList.add("is-hidden");
+  elements.taskScreen?.classList.remove("is-hidden");
+  loadCurrentArticle();
+  window.scrollTo({ top: 0, behavior: "auto" });
+}
+
 function loadCurrentArticle() {
   const article = getCurrentArticle();
   if (!article) {
     return;
   }
 
-  elements.articleStep.textContent = `Article ${state.currentArticleIndex + 1} of ${articles.length}`;
+  elements.articleStep.textContent = `Article ${state.finalizedArticles.length + 1} of ${getTargetArticleCount()}`;
   elements.articleTitle.textContent = article.title;
-  elements.articleByline.textContent = article.byline;
+  elements.articleByline.textContent = "";
   renderArticleParagraphs(article.paragraphs);
   if (elements.articleId) {
     elements.articleId.value = article.id;
   }
   elements.finalizeButton.textContent =
-    state.currentArticleIndex === articles.length - 1
+    state.finalizedArticles.length + 1 >= getTargetArticleCount()
       ? "Finalize full submission"
       : "Finish article and continue";
   elements.finalizeButton.disabled = false;
@@ -886,14 +1016,13 @@ async function finalizeCurrentArticle() {
   renderSubmission();
   await saveSnapshotToServer("article-finalized");
 
-  if (state.currentArticleIndex < articles.length - 1) {
-    state.currentArticleIndex += 1;
+  if (state.finalizedArticles.length < getTargetArticleCount()) {
     state.currentAnnotations = [];
     showSubmissionNote(
-      `Article ${state.currentArticleIndex} saved. You can now annotate article ${state.currentArticleIndex + 1}.`,
+      `Article ${state.finalizedArticles.length} saved. Choose the next article to annotate.`,
       false,
     );
-    loadCurrentArticle();
+    showArticleChoiceScreen();
     return;
   }
 
@@ -911,6 +1040,7 @@ async function finalizeCurrentArticle() {
 function showCompletionScreen() {
   elements.guidelinesScreen?.classList.add("is-hidden");
   elements.platformScreen?.classList.add("is-hidden");
+  elements.choiceScreen?.classList.add("is-hidden");
   elements.taskScreen?.classList.add("is-hidden");
   elements.completionScreen?.classList.remove("is-hidden");
   window.scrollTo({ top: 0, behavior: "auto" });
@@ -918,7 +1048,8 @@ function showCompletionScreen() {
 
 function buildSubmissionPayload() {
   const currentArticle = articles.length > 0 ? getCurrentArticle() : null;
-  const allArticlesCompleted = articles.length > 0 && state.finalizedArticles.length === articles.length;
+  const targetArticleCount = getTargetArticleCount();
+  const allArticlesCompleted = targetArticleCount > 0 && state.finalizedArticles.length >= targetArticleCount;
   const currentArticleIsFinalized = state.finalizedArticles.some(
     (article) => currentArticle && article.articleId === currentArticle.id,
   );
@@ -936,8 +1067,17 @@ function buildSubmissionPayload() {
     pasteCounts: {
       ...state.pasteCounts,
     },
-    totalArticles: articles.length,
+    totalArticles: targetArticleCount,
     completedArticles: state.finalizedArticles.length,
+    availableArticleChoices: articleCandidates.length,
+    pendingChoiceOptions: state.currentChoiceOptions.map((article) => ({
+      articleId: article.id,
+      originalId: article.originalId,
+      title: article.title,
+      source: article.source,
+      bias: article.bias,
+      url: article.url,
+    })),
     currentArticleId: allArticlesCompleted || !currentArticle ? null : currentArticle.id,
     articles:
       allArticlesCompleted || !currentArticle || currentArticleIsFinalized
@@ -981,7 +1121,11 @@ function buildArticlePayload(article, annotations) {
 
   return {
     articleId: article.id,
+    originalArticleId: article.originalId,
     articleTitle: article.title,
+    articleSource: article.source,
+    articleUrl: article.url,
+    choiceSet: article.choiceSet || [],
     articleText: article.paragraphs.join("\n\n"),
     validation: {
       factualTakeawayCount,
