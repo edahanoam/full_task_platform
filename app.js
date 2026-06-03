@@ -1,5 +1,5 @@
-const DATASET_PATH = "./samplefrom5withkeys.jsonl";
-const DATASET_CACHE_BUSTER = "article-choice-sample-20260603";
+const DATASET_PATH = "./cleaned2604combined_none_middle50_by_length.jsonl";
+const DATASET_CACHE_BUSTER = "cleaned-2604-middle50-20260603";
 const ANNOTATION_SAVE_PATH = "/api/annotations/save";
 const LOCAL_SESSION_KEY = "annotation_task_session_id";
 const TASK_VERSION = "article-choice-task-20260603";
