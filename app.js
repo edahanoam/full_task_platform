@@ -2,6 +2,7 @@ const DATASET_PATH = "./genz_next_two_articles.jsonl";
 const DATASET_CACHE_BUSTER = "genz-next-two-20260505";
 const ANNOTATION_SAVE_PATH = "/api/annotations/save";
 const LOCAL_SESSION_KEY = "annotation_task_session_id";
+const TASK_VERSION = "id-guidelines-platform-task-20260602";
 const SAVE_DEBOUNCE_MS = 700;
 
 let articles = [];
@@ -19,6 +20,7 @@ const state = {
     question: 0,
   },
   sessionId: getLocalSessionId(),
+  runId: "",
   startTime: null,
   endTime: null,
 };
@@ -924,6 +926,9 @@ function buildSubmissionPayload() {
   return {
     participantId: elements.participantId.value.trim(),
     sessionId: state.sessionId,
+    runId: state.runId,
+    taskVersion: TASK_VERSION,
+    datasetVersion: DATASET_CACHE_BUSTER,
     startTime: state.startTime,
     endTime: state.endTime,
     durationSeconds: getTaskDurationSeconds(),
@@ -1028,6 +1033,7 @@ async function showParticipantIdPrompt() {
 
 
   elements.participantId.value = response.participantId;
+  state.runId = createRunId();
   showGuidelinesScreen();
   markTaskStarted();
   renderSubmission();
@@ -1283,6 +1289,11 @@ function createId() {
   return `id-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
+function createRunId() {
+  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+  return `${timestamp}_${createId()}`;
+}
+
 function scheduleServerSave(reason) {
   if (articles.length === 0) {
     return;
@@ -1309,6 +1320,7 @@ async function saveSnapshotToServer(reason) {
         reason,
         participantId: elements.participantId.value.trim(),
         sessionId: state.sessionId,
+        runId: state.runId,
         payload: buildSubmissionPayload(),
       }),
     });

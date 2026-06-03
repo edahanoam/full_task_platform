@@ -11,40 +11,78 @@ from datetime import datetime, timezone
 PORT = int(os.environ.get("PORT", "3000"))
 ROOT_DIR = Path(__file__).resolve().parent
 DATA_DIR = ROOT_DIR / "saved_annotations"
-LATEST_DIR = DATA_DIR / "latest"
-EVENTS_FILE = DATA_DIR / "annotation-events.jsonl"
+RUNS_DIR = DATA_DIR / "runs"
+EVENTS_DIR = DATA_DIR / "events"
+EVENTS_FILE = EVENTS_DIR / "annotation-events.jsonl"
 MAX_BODY_BYTES = 5 * 1024 * 1024
 
 
 def ensure_storage():
-    LATEST_DIR.mkdir(parents=True, exist_ok=True)
+    RUNS_DIR.mkdir(parents=True, exist_ok=True)
+    EVENTS_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def sanitize_storage_part(value, fallback=None):
+    raw_value = str(value or "").strip() or fallback or str(uuid.uuid4())
+    return re.sub(r"[^a-zA-Z0-9._-]", "_", raw_value)[:160]
 
 
 def make_storage_key(payload):
     participant_id = str(payload.get("participantId") or "").strip()
     session_id = str(payload.get("sessionId") or "").strip()
     raw_key = participant_id or session_id or str(uuid.uuid4())
-    return re.sub(r"[^a-zA-Z0-9._-]", "_", raw_key)[:120]
+    return sanitize_storage_part(raw_key)[:120]
+
+
+def make_run_id(payload):
+    nested_payload = payload.get("payload") or {}
+    supplied_run_id = str(payload.get("runId") or nested_payload.get("runId") or "").strip()
+    if supplied_run_id:
+        return sanitize_storage_part(supplied_run_id)
+
+    timestamp = datetime.now(timezone.utc).isoformat().replace(":", "-").replace(".", "-")
+    return sanitize_storage_part(f"{timestamp}_{uuid.uuid4()}")
+
+
+def is_final_save(payload):
+    reason = str(payload.get("reason") or "").strip()
+    nested_payload = payload.get("payload") or {}
+    total_articles = int(nested_payload.get("totalArticles") or 0)
+    completed_articles = int(nested_payload.get("completedArticles") or 0)
+    return (
+        reason == "submission-complete"
+        or bool(nested_payload.get("endTime"))
+        or (total_articles > 0 and completed_articles == total_articles)
+    )
 
 
 def save_annotation_snapshot(payload):
     ensure_storage()
 
     storage_key = make_storage_key(payload)
-    latest_file = LATEST_DIR / f"{storage_key}.json"
+    run_id = make_run_id(payload)
+    run_dir = RUNS_DIR / storage_key / run_id
+    snapshot_file = run_dir / "snapshot.json"
+    final_file = run_dir / "final.json"
+    is_complete = is_final_save(payload)
+    target_file = final_file if is_complete else snapshot_file
     record = {
         "savedAt": datetime.now(timezone.utc).isoformat(),
         "storageKey": storage_key,
+        "runId": run_id,
         "participantId": str(payload.get("participantId") or "").strip() or None,
         "sessionId": str(payload.get("sessionId") or "").strip() or None,
         "reason": str(payload.get("reason") or "snapshot"),
+        "status": "complete" if is_complete else "draft",
         "payload": payload.get("payload"),
     }
+
+    run_dir.mkdir(parents=True, exist_ok=True)
 
     with EVENTS_FILE.open("a", encoding="utf-8") as event_log:
         event_log.write(json.dumps(record, ensure_ascii=False) + "\n")
 
-    latest_file.write_text(
+    target_file.write_text(
         json.dumps(record, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
@@ -52,8 +90,10 @@ def save_annotation_snapshot(payload):
     return {
         "ok": True,
         "storageKey": storage_key,
+        "runId": run_id,
+        "status": record["status"],
         "eventFile": str(EVENTS_FILE.relative_to(ROOT_DIR)),
-        "latestFile": str(latest_file.relative_to(ROOT_DIR)),
+        "runFile": str(target_file.relative_to(ROOT_DIR)),
     }
 
 

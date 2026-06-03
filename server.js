@@ -6,8 +6,9 @@ const { randomUUID } = require("node:crypto");
 const PORT = Number(process.env.PORT || 3000);
 const ROOT_DIR = __dirname;
 const DATA_DIR = path.join(ROOT_DIR, "saved_annotations");
-const LATEST_DIR = path.join(DATA_DIR, "latest");
-const EVENTS_FILE = path.join(DATA_DIR, "annotation-events.jsonl");
+const RUNS_DIR = path.join(DATA_DIR, "runs");
+const EVENTS_DIR = path.join(DATA_DIR, "events");
+const EVENTS_FILE = path.join(EVENTS_DIR, "annotation-events.jsonl");
 const MAX_BODY_BYTES = 5 * 1024 * 1024;
 
 const MIME_TYPES = {
@@ -24,7 +25,8 @@ const MIME_TYPES = {
 };
 
 function ensureStorage() {
-  fs.mkdirSync(LATEST_DIR, { recursive: true });
+  fs.mkdirSync(RUNS_DIR, { recursive: true });
+  fs.mkdirSync(EVENTS_DIR, { recursive: true });
 }
 
 function sendJson(response, statusCode, payload) {
@@ -71,36 +73,73 @@ function readRequestJson(request) {
   });
 }
 
+function sanitizeStoragePart(value, fallback) {
+  const rawValue = String(value || "").trim() || fallback || randomUUID();
+  return rawValue.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 160);
+}
+
+function makeRunId(payload) {
+  const suppliedRunId = String(payload.runId || payload.payload?.runId || "").trim();
+  if (suppliedRunId) {
+    return sanitizeStoragePart(suppliedRunId);
+  }
+
+  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+  return sanitizeStoragePart(`${timestamp}_${randomUUID()}`);
+}
+
 function makeStorageKey(payload) {
   const participantId = String(payload.participantId || "").trim();
   const sessionId = String(payload.sessionId || "").trim();
   const rawKey = participantId || sessionId || randomUUID();
 
-  return rawKey.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 120);
+  return sanitizeStoragePart(rawKey, randomUUID()).slice(0, 120);
+}
+
+function isFinalSave(payload) {
+  const reason = String(payload.reason || "").trim();
+  const nestedPayload = payload.payload || {};
+  return (
+    reason === "submission-complete" ||
+    Boolean(nestedPayload.endTime) ||
+    (
+      Number(nestedPayload.totalArticles) > 0 &&
+      Number(nestedPayload.completedArticles) === Number(nestedPayload.totalArticles)
+    )
+  );
 }
 
 function saveAnnotationSnapshot(payload) {
   ensureStorage();
 
   const storageKey = makeStorageKey(payload);
-  const latestFile = path.join(LATEST_DIR, `${storageKey}.json`);
+  const runId = makeRunId(payload);
+  const runDir = path.join(RUNS_DIR, storageKey, runId);
+  const snapshotFile = path.join(runDir, "snapshot.json");
+  const finalFile = path.join(runDir, "final.json");
+  const targetFile = isFinalSave(payload) ? finalFile : snapshotFile;
   const record = {
     savedAt: new Date().toISOString(),
     storageKey,
+    runId,
     participantId: String(payload.participantId || "").trim() || null,
     sessionId: String(payload.sessionId || "").trim() || null,
     reason: String(payload.reason || "snapshot"),
+    status: isFinalSave(payload) ? "complete" : "draft",
     payload: payload.payload || null,
   };
 
+  fs.mkdirSync(runDir, { recursive: true });
   fs.appendFileSync(EVENTS_FILE, `${JSON.stringify(record)}\n`, "utf8");
-  fs.writeFileSync(latestFile, `${JSON.stringify(record, null, 2)}\n`, "utf8");
+  fs.writeFileSync(targetFile, `${JSON.stringify(record, null, 2)}\n`, "utf8");
 
   return {
     ok: true,
     storageKey,
+    runId,
+    status: record.status,
     eventFile: path.relative(ROOT_DIR, EVENTS_FILE),
-    latestFile: path.relative(ROOT_DIR, latestFile),
+    runFile: path.relative(ROOT_DIR, targetFile),
   };
 }
 
