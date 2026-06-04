@@ -1,13 +1,14 @@
 const DATASET_PATH = "./cleaned2604combined_none_middle50_by_length.jsonl";
 const DATASET_CACHE_BUSTER = "cleaned-2604-middle50-20260603";
 const ANNOTATION_SAVE_PATH = "/api/annotations/save";
+const ARTICLE_OPTIONS_PATH = "/api/articles/options";
+const ARTICLE_ANNOTATED_PATH = "/api/articles/annotated";
 const LOCAL_SESSION_KEY = "annotation_task_session_id";
 const TASK_VERSION = "article-choice-task-20260603";
 const ARTICLE_CHOICES_PER_ROUND = 4;
 const ARTICLES_PER_TASK = 5;
 const SAVE_DEBOUNCE_MS = 700;
 
-let articleCandidates = [];
 let articles = [];
 let saveDebounceTimer = null;
 
@@ -136,11 +137,11 @@ elements.platformContinue?.addEventListener("click", () => {
 
 elements.articleChoiceList?.addEventListener("click", (event) => {
   const choiceCard = event.target.closest(".article-choice-card");
-  if (!choiceCard?.dataset.articleId) {
+  if (!choiceCard?.dataset.rowId) {
     return;
   }
 
-  chooseArticle(choiceCard.dataset.articleId);
+  chooseArticle(choiceCard.dataset.rowId);
 });
 
 elements.modeButtons.forEach((button) => {
@@ -217,7 +218,7 @@ elements.saveButton.addEventListener("click", () => {
 
   const annotation = {
     id: createId(),
-    articleId: getCurrentArticle().id,
+    row_id: getCurrentArticle().row_id,
     type: state.mode,
     scope: isArticleScope ? "article" : "span",
     section: isArticleScope ? "article" : state.selection.section,
@@ -385,42 +386,24 @@ initApp();
 async function initApp() {
   setLoadingState();
 
-  try {
-    const datasetUrl = `${DATASET_PATH}?v=${encodeURIComponent(DATASET_CACHE_BUSTER)}`;
-    const response = await fetch(datasetUrl, { cache: "no-store" });
-    if (!response.ok) {
-      throw new Error(`Dataset request failed with status ${response.status}.`);
-    }
-
-    const rawDataset = await response.text();
-    const rawArticles = parseDatasetArticles(rawDataset);
-    if (rawArticles.length === 0) {
-      throw new Error("The dataset file does not contain any articles.");
-    }
-
-    articleCandidates = rawArticles.map(normalizeArticle).filter(Boolean);
-
-    state.currentArticleIndex = 0;
-    state.currentChoiceOptions = [];
-    state.currentAnnotations = [];
-    state.finalizedArticles = [];
-    articles = [];
-    clearDraft();
-    showSubmissionNote("", false);
-    renderSubmission();
-  } catch (error) {
-    showDatasetError(error);
-  }
+  state.currentArticleIndex = 0;
+  state.currentChoiceOptions = [];
+  state.currentAnnotations = [];
+  state.finalizedArticles = [];
+  articles = [];
+  clearDraft();
+  showSubmissionNote("", false);
+  renderSubmission();
 }
 
 function setLoadingState() {
-  elements.articleStep.textContent = "Loading articles...";
+  elements.articleStep.textContent = "Waiting for article choice...";
   elements.articleTitle.textContent = "Loading article title...";
   elements.articleByline.textContent = "Loading source information...";
   elements.article.replaceChildren(createParagraph("Article text will appear here when the task loads."));
   elements.finalizeButton.disabled = true;
   elements.saveButton.disabled = true;
-  showSubmissionNote(`Loading articles from ${DATASET_PATH}...`, false);
+  showSubmissionNote("", false);
 }
 
 function hydrateGuidelinesModal() {
@@ -584,12 +567,13 @@ function normalizeArticle(item, index) {
     return null;
   }
 
-  const rowId = item.row_id ?? index + 1;
-  const rawId = item.ID ?? item.id ?? item.articleId ?? index;
+  const rowId = item.row_id ?? item.rowId ?? index + 1;
+  const rawId = item.originalId ?? item.ID ?? item.id ?? item.articleId ?? index;
   const source = item.source || item.publisher || item.outlet || "";
 
   return {
-    id: `row-${String(rowId).padStart(5, "0")}`,
+    id: String(item.row_id || item.articleId || rowId),
+    row_id: String(rowId),
     originalId: String(rawId),
     title: heading,
     source,
@@ -616,7 +600,7 @@ function getCurrentArticle() {
 }
 
 function getTargetArticleCount() {
-  return Math.min(ARTICLES_PER_TASK, articles.length + articleCandidates.length);
+  return ARTICLES_PER_TASK;
 }
 
 function getArticleChoiceSummary(article) {
@@ -624,19 +608,37 @@ function getArticleChoiceSummary(article) {
   return summaryText.length > 220 ? `${summaryText.slice(0, 220).trim()}...` : summaryText;
 }
 
-function pickArticleOptions() {
-  return [...articleCandidates]
-    .sort(() => Math.random() - 0.5)
-    .slice(0, Math.min(ARTICLE_CHOICES_PER_ROUND, articleCandidates.length));
+async function fetchArticleOptions() {
+  const response = await fetch(ARTICLE_OPTIONS_PATH, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      participantId: elements.participantId.value.trim(),
+      runId: state.runId,
+      round: state.finalizedArticles.length + 1,
+      count: ARTICLE_CHOICES_PER_ROUND,
+    }),
+  });
+
+  const result = await response.json();
+  if (!response.ok || !result.ok) {
+    throw new Error(result.error || `Server returned ${response.status}.`);
+  }
+
+  return result.options.map(normalizeArticle).filter(Boolean);
 }
 
-function showArticleChoiceScreen() {
-  if (articleCandidates.length === 0) {
-    window.alert("No articles are available to choose from.");
+async function showArticleChoiceScreen() {
+  try {
+    state.currentChoiceOptions = await fetchArticleOptions();
+  } catch (error) {
+    showSubmissionNote(error.message || String(error), true);
+    window.alert(`Could not load article choices. ${error.message || error}`);
     return;
   }
 
-  state.currentChoiceOptions = pickArticleOptions();
   elements.articleChoiceList.replaceChildren();
   elements.choiceStep.textContent =
     `Article ${state.finalizedArticles.length + 1} of ${getTargetArticleCount()}`;
@@ -645,7 +647,7 @@ function showArticleChoiceScreen() {
     const button = document.createElement("button");
     button.className = "article-choice-card";
     button.type = "button";
-    button.dataset.articleId = article.id;
+    button.dataset.rowId = article.row_id;
 
     const title = document.createElement("h3");
     title.textContent = article.title;
@@ -666,17 +668,16 @@ function showArticleChoiceScreen() {
   window.scrollTo({ top: 0, behavior: "auto" });
 }
 
-function chooseArticle(articleId) {
-  const selectedArticle = state.currentChoiceOptions.find((article) => article.id === articleId);
+function chooseArticle(rowId) {
+  const selectedArticle = state.currentChoiceOptions.find((article) => article.row_id === rowId);
   if (!selectedArticle) {
     return;
   }
 
-  articleCandidates = articleCandidates.filter((article) => article.id !== selectedArticle.id);
   articles.push({
     ...selectedArticle,
     choiceSet: state.currentChoiceOptions.map((article) => ({
-      articleId: article.id,
+      row_id: article.row_id,
       originalId: article.originalId,
       title: article.title,
       source: article.source,
@@ -705,7 +706,7 @@ function loadCurrentArticle() {
   elements.articleByline.textContent = "";
   renderArticleParagraphs(article.paragraphs);
   if (elements.articleId) {
-    elements.articleId.value = article.id;
+    elements.articleId.value = article.row_id;
   }
   elements.finalizeButton.textContent =
     state.finalizedArticles.length + 1 >= getTargetArticleCount()
@@ -1015,7 +1016,29 @@ async function finalizeCurrentArticle() {
   const finalizedArticle = buildArticlePayload(getCurrentArticle(), state.currentAnnotations);
   state.finalizedArticles.push(finalizedArticle);
   renderSubmission();
-  await saveSnapshotToServer("article-finalized");
+  const articleSaved = await saveSnapshotToServer("article-finalized");
+  if (!articleSaved) {
+    showSubmissionNote(
+      "The article could not be saved to the server. Please try again before continuing.",
+      true,
+    );
+    window.alert("The article could not be saved to the server. Please try again before continuing.");
+    state.finalizedArticles.pop();
+    renderSubmission();
+    return;
+  }
+
+  const assignmentUpdated = await markArticleAnnotated(finalizedArticle);
+  if (!assignmentUpdated) {
+    showSubmissionNote(
+      "The article was saved, but the assignment tracker could not mark it as annotated. Please try again or tell the study administrator.",
+      true,
+    );
+    window.alert("The annotation was saved, but the article assignment tracker could not be updated.");
+    state.finalizedArticles.pop();
+    renderSubmission();
+    return;
+  }
 
   if (state.finalizedArticles.length < getTargetArticleCount()) {
     state.currentAnnotations = [];
@@ -1052,7 +1075,7 @@ function buildSubmissionPayload() {
   const targetArticleCount = getTargetArticleCount();
   const allArticlesCompleted = targetArticleCount > 0 && state.finalizedArticles.length >= targetArticleCount;
   const currentArticleIsFinalized = state.finalizedArticles.some(
-    (article) => currentArticle && article.articleId === currentArticle.id,
+    (article) => currentArticle && article.row_id === currentArticle.row_id,
   );
 
   return {
@@ -1070,16 +1093,15 @@ function buildSubmissionPayload() {
     },
     totalArticles: targetArticleCount,
     completedArticles: state.finalizedArticles.length,
-    availableArticleChoices: articleCandidates.length,
     pendingChoiceOptions: state.currentChoiceOptions.map((article) => ({
-      articleId: article.id,
+      row_id: article.row_id,
       originalId: article.originalId,
       title: article.title,
       source: article.source,
       bias: article.bias,
       url: article.url,
     })),
-    currentArticleId: allArticlesCompleted || !currentArticle ? null : currentArticle.id,
+    current_row_id: allArticlesCompleted || !currentArticle ? null : currentArticle.row_id,
     articles:
       allArticlesCompleted || !currentArticle || currentArticleIsFinalized
         ? state.finalizedArticles
@@ -1121,7 +1143,7 @@ function buildArticlePayload(article, annotations) {
   const pointOfConcernCount = getAnnotationCount("issue", annotations);
 
   return {
-    articleId: article.id,
+    row_id: article.row_id,
     originalArticleId: article.originalId,
     articleTitle: article.title,
     articleSource: article.source,
@@ -1478,6 +1500,37 @@ async function saveSnapshotToServer(reason) {
     await response.json();
     return true;
   } catch (error) {
+    return false;
+  }
+}
+
+async function markArticleAnnotated(article) {
+  if (!article?.row_id) {
+    return false;
+  }
+
+  try {
+    const response = await fetch(ARTICLE_ANNOTATED_PATH, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        participantId: elements.participantId.value.trim(),
+        runId: state.runId,
+        round: state.finalizedArticles.length,
+        row_id: article.row_id,
+        articleId: article.row_id,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Server returned ${response.status}.`);
+    }
+
+    const result = await response.json();
+    return Boolean(result.ok);
+  } catch {
     return false;
   }
 }
