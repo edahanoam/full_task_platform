@@ -119,11 +119,13 @@ const elements = {
   editAnnotationSave: document.getElementById("edit-annotation-save"),
 };
 
-elements.guidelinesContinue?.addEventListener("click", () => {
+function showPlatformScreen() {
   elements.guidelinesScreen?.classList.add("is-hidden");
   elements.platformScreen?.classList.remove("is-hidden");
   window.scrollTo({ top: 0, behavior: "auto" });
-});
+}
+
+elements.guidelinesContinue?.addEventListener("click", showPlatformScreen);
 
 elements.platformBack?.addEventListener("click", () => {
   elements.platformScreen?.classList.add("is-hidden");
@@ -136,12 +138,12 @@ elements.platformContinue?.addEventListener("click", () => {
 });
 
 elements.articleChoiceList?.addEventListener("click", (event) => {
-  const choiceCard = event.target.closest(".article-choice-card");
-  if (!choiceCard?.dataset.rowId) {
+  const choiceButton = event.target.closest(".article-choice-button");
+  if (!choiceButton?.dataset.rowId) {
     return;
   }
 
-  chooseArticle(choiceCard.dataset.rowId);
+  chooseArticle(choiceButton.dataset.rowId);
 });
 
 elements.modeButtons.forEach((button) => {
@@ -643,10 +645,22 @@ async function showArticleChoiceScreen() {
     `Article ${state.finalizedArticles.length + 1} of ${getTargetArticleCount()}`;
 
   state.currentChoiceOptions.forEach((article) => {
-    const button = document.createElement("button");
-    button.className = "article-choice-card";
-    button.type = "button";
-    button.dataset.rowId = article.row_id;
+    const card = document.createElement("article");
+    card.className = "article-choice-card";
+
+    const chooseButton = document.createElement("button");
+    chooseButton.className = "article-choice-button";
+    chooseButton.type = "button";
+    chooseButton.dataset.rowId = article.row_id;
+
+    const radioMark = document.createElement("span");
+    radioMark.className = "article-choice-radio";
+    radioMark.setAttribute("aria-hidden", "true");
+
+    const radioLabel = document.createElement("span");
+    radioLabel.textContent = "Click to choose this article";
+
+    chooseButton.append(radioMark, radioLabel);
 
     const title = document.createElement("h3");
     title.textContent = article.title;
@@ -655,8 +669,8 @@ async function showArticleChoiceScreen() {
     summary.className = "article-choice-summary";
     summary.textContent = getArticleChoiceSummary(article);
 
-    button.append(title, summary);
-    elements.articleChoiceList.appendChild(button);
+    card.append(chooseButton, title, summary);
+    elements.articleChoiceList.appendChild(card);
   });
 
   elements.guidelinesScreen?.classList.add("is-hidden");
