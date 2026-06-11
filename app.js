@@ -1,11 +1,11 @@
 const DATASET_PATH = "./cleaned2604combined_none_middle50_by_length.jsonl";
-const DATASET_CACHE_BUSTER = "cleaned-2604-middle50-20260603";
+const DATASET_CACHE_BUSTER = "cleaned-2604-middle50-20260611";
 const ANNOTATION_SAVE_PATH = "/api/annotations/save";
 const ARTICLE_OPTIONS_PATH = "/api/articles/options";
 const ARTICLE_ANNOTATED_PATH = "/api/articles/annotated";
 const LOCAL_SESSION_KEY = "annotation_task_session_id";
-const TASK_VERSION = "article-choice-task-20260603";
-const ARTICLE_CHOICES_PER_ROUND = 4;
+const TASK_VERSION = "article-choice-two-task-20260611";
+const ARTICLE_CHOICES_PER_ROUND = 2;
 const ARTICLES_PER_TASK = 5;
 const SAVE_DEBOUNCE_MS = 700;
 
@@ -604,8 +604,7 @@ function getTargetArticleCount() {
 }
 
 function getArticleChoiceSummary(article) {
-  const summaryText = article.paragraphs.join(" ");
-  return summaryText.length > 220 ? `${summaryText.slice(0, 220).trim()}...` : summaryText;
+  return article.paragraphs.join("\n\n");
 }
 
 async function fetchArticleOptions() {

@@ -427,8 +427,10 @@ textarea {
 
 .article-choice-card {
   display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   gap: 12px;
   min-height: 100%;
+  max-height: min(680px, calc(100vh - 220px));
   padding: 20px;
   border: 1px solid var(--line);
   border-radius: 20px;
@@ -470,6 +472,10 @@ textarea {
 .article-choice-summary {
   color: var(--muted);
   line-height: 1.6;
+  min-height: 280px;
+  overflow: auto;
+  padding-right: 8px;
+  white-space: pre-line;
 }
 
 .article-panel,
