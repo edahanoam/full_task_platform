@@ -429,8 +429,8 @@ textarea {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   gap: 12px;
-  min-height: 100%;
-  max-height: min(680px, calc(100vh - 220px));
+  height: min(760px, calc(100vh - 180px));
+  min-height: 520px;
   padding: 20px;
   border: 1px solid var(--line);
   border-radius: 20px;
@@ -438,6 +438,7 @@ textarea {
   color: var(--ink);
   text-align: left;
   cursor: pointer;
+  overflow: hidden;
   box-shadow: 0 14px 36px rgba(61, 44, 22, 0.08);
   transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
 }
@@ -472,7 +473,7 @@ textarea {
 .article-choice-summary {
   color: var(--muted);
   line-height: 1.6;
-  min-height: 280px;
+  min-height: 0;
   overflow: auto;
   padding-right: 8px;
   white-space: pre-line;
@@ -1319,6 +1320,11 @@ textarea {
 
   .article-choice-list {
     grid-template-columns: 1fr;
+  }
+
+  .article-choice-card {
+    height: min(720px, calc(100vh - 160px));
+    min-height: 460px;
   }
 }
 
