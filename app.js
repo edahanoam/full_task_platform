@@ -4,8 +4,8 @@ const ANNOTATION_SAVE_PATH = "/api/annotations/save";
 const ARTICLE_OPTIONS_PATH = "/api/articles/options";
 const ARTICLE_ANNOTATED_PATH = "/api/articles/annotated";
 const LOCAL_SESSION_KEY = "annotation_task_session_id";
-const TASK_VERSION = "article-choice-two-task-20260611";
-const ARTICLE_CHOICES_PER_ROUND = 2;
+const TASK_VERSION = "article-choice-three-task-20260617";
+const ARTICLE_CHOICES_PER_ROUND = 3;
 const ARTICLES_PER_TASK = 5;
 const SAVE_DEBOUNCE_MS = 700;
 

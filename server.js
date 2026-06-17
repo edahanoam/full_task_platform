@@ -14,7 +14,7 @@ const ASSIGNMENT_EVENTS_FILE = path.join(ASSIGNMENTS_DIR, "article-events.jsonl"
 const ASSIGNMENT_LOCK_FILE = path.join(ASSIGNMENTS_DIR, "article-events.lock");
 const AVAILABLE_ARTICLES_FILE = path.join(ASSIGNMENTS_DIR, "available-articles.json");
 const ARTICLE_DATASET_PATH = path.join(ROOT_DIR, "cleaned2604combined_none_middle50_by_length.jsonl");
-const ARTICLE_CHOICES_PER_ROUND = 2;
+const ARTICLE_CHOICES_PER_ROUND = 3;
 const MAX_BODY_BYTES = 5 * 1024 * 1024;
 
 const MIME_TYPES = {
