@@ -920,6 +920,13 @@ textarea {
   margin-bottom: 0;
 }
 
+.freeform-modal-legal-links {
+  display: flex;
+  gap: 8px;
+  margin: -4px 0 0;
+  font-size: 0.9rem;
+}
+
 .freeform-modal-actions {
   display: flex;
   justify-content: flex-end;
