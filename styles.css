@@ -1105,6 +1105,10 @@ textarea {
 }
 
 .mode-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   background: rgba(31, 27, 22, 0.08);
   color: var(--ink);
   font-weight: 700;
@@ -1112,6 +1116,32 @@ textarea {
 
 .mode-button.is-active {
   background: var(--ink);
+  color: #fffaf2;
+}
+
+.mode-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgba(31, 27, 22, 0.12);
+  font-size: 0.78rem;
+  line-height: 1;
+}
+
+.mode-button.is-active .mode-count {
+  background: rgba(255, 250, 242, 0.18);
+}
+
+.mode-count.is-complete {
+  background: rgba(10, 122, 109, 0.16);
+  color: #075f56;
+}
+
+.mode-button.is-active .mode-count.is-complete {
+  background: rgba(255, 250, 242, 0.24);
   color: #fffaf2;
 }
 

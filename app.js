@@ -91,6 +91,7 @@ const elements = {
   submissionNote: document.getElementById("submission-note"),
   output: document.getElementById("submission-output"),
   modeButtons: Array.from(document.querySelectorAll(".mode-button")),
+  factualTakeawayCount: document.getElementById("factual-takeaway-count"),
   freeformModal: document.getElementById("freeform-modal"),
   freeformEyebrow: document.getElementById("freeform-modal-eyebrow"),
   freeformTitle: document.getElementById("freeform-modal-title"),
@@ -209,6 +210,15 @@ elements.saveButton.addEventListener("click", () => {
   if (!primaryComment) {
     window.alert("Add a takeaway before saving.");
     return;
+  }
+
+  if (state.mode === "comment" && getAnnotationCount("comment", state.currentAnnotations) >= 2) {
+    const shouldAddExtraFactualTakeaway = window.confirm(
+      "You already marked the 2 required factual takeaways. Add another anyway?",
+    );
+    if (!shouldAddExtraFactualTakeaway) {
+      return;
+    }
   }
 
   const secondaryComment =
@@ -865,6 +875,7 @@ function syncArticleScopeUi() {
 }
 
 function renderAnnotations() {
+  updateFactualTakeawayCount();
   elements.annotationList.innerHTML = "";
 
   if (state.currentAnnotations.length === 0) {
@@ -1422,6 +1433,17 @@ function capitalizeSection(section) {
 
 function getAnnotationCount(type, annotations) {
   return annotations.filter((annotation) => annotation.type === type).length;
+}
+
+function updateFactualTakeawayCount() {
+  if (!elements.factualTakeawayCount) {
+    return;
+  }
+
+  const factualTakeawayCount = getAnnotationCount("comment", state.currentAnnotations);
+  const visibleCount = Math.min(factualTakeawayCount, 2);
+  elements.factualTakeawayCount.textContent = `${visibleCount}/2`;
+  elements.factualTakeawayCount.classList.toggle("is-complete", factualTakeawayCount >= 2);
 }
 
 function recordPaste(field) {
