@@ -17,6 +17,8 @@ RUNS_DIR = DATA_DIR / "runs"
 EVENTS_DIR = DATA_DIR / "events"
 ASSIGNMENTS_DIR = DATA_DIR / "assignments"
 EVENTS_FILE = EVENTS_DIR / "annotation-events.jsonl"
+ONLY_ANNOTATIONS_FILE = DATA_DIR / "only-annotations.jsonl"
+ONLY_ANNOTATIONS_LOCK_FILE = DATA_DIR / "only-annotations.lock"
 ASSIGNMENT_EVENTS_FILE = ASSIGNMENTS_DIR / "article-events.jsonl"
 ASSIGNMENT_LOCK_FILE = ASSIGNMENTS_DIR / "article-events.lock"
 AVAILABLE_ARTICLES_FILE = ASSIGNMENTS_DIR / "available-articles.json"
@@ -138,13 +140,18 @@ def append_assignment_event(event):
         event_log.write(json.dumps(record, ensure_ascii=False) + "\n")
 
 
-class assignment_lock:
+class file_lock:
+    def __init__(self, lock_file, lock_name):
+        self.lock_file = lock_file
+        self.lock_name = lock_name
+        self.lock_fd = None
+
     def __enter__(self):
         ensure_storage()
         started_at = time.time()
         while time.time() - started_at < 5:
             try:
-                self.lock_fd = os.open(str(ASSIGNMENT_LOCK_FILE), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+                self.lock_fd = os.open(str(self.lock_file), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
                 os.write(
                     self.lock_fd,
                     f"{os.getpid()}\n{datetime.now(timezone.utc).isoformat()}\n".encode("utf-8"),
@@ -152,19 +159,19 @@ class assignment_lock:
                 return self
             except FileExistsError:
                 try:
-                    lock_age = time.time() - ASSIGNMENT_LOCK_FILE.stat().st_mtime
+                    lock_age = time.time() - self.lock_file.stat().st_mtime
                     if lock_age > 30:
-                        ASSIGNMENT_LOCK_FILE.unlink()
+                        self.lock_file.unlink()
                 except FileNotFoundError:
                     pass
                 time.sleep(0.05)
 
-        raise TimeoutError("Could not acquire article assignment lock.")
+        raise TimeoutError(f"Could not acquire {self.lock_name} lock.")
 
     def __exit__(self, exc_type, exc_value, traceback):
         os.close(self.lock_fd)
         try:
-            ASSIGNMENT_LOCK_FILE.unlink()
+            self.lock_file.unlink()
         except FileNotFoundError:
             pass
 
@@ -177,7 +184,7 @@ def assign_article_options(payload):
     if not participant_id or not run_id:
         raise ValueError("participantId and runId are required.")
 
-    with assignment_lock():
+    with file_lock(ASSIGNMENT_LOCK_FILE, "article assignment"):
         article_map = get_article_map()
         available_article_ids = [
             article_id
@@ -223,7 +230,7 @@ def mark_article_annotated(payload):
     if not participant_id or not run_id or not article_id:
         raise ValueError("participantId, runId, and articleId are required.")
 
-    with assignment_lock():
+    with file_lock(ASSIGNMENT_LOCK_FILE, "article assignment"):
         append_assignment_event({
             "type": "annotated",
             "participantId": participant_id,
@@ -237,6 +244,65 @@ def mark_article_annotated(payload):
         "status": "annotated",
         "row_id": article_id,
         "assignmentEventFile": str(ASSIGNMENT_EVENTS_FILE.relative_to(ROOT_DIR)),
+    }
+
+
+def build_only_annotation_records(record):
+    if record["reason"] != "article-finalized":
+        return []
+
+    task_payload = record.get("payload") or {}
+    articles = task_payload.get("articles") if isinstance(task_payload.get("articles"), list) else []
+    article = articles[-1] if articles else {}
+    annotations = article.get("annotations") if isinstance(article.get("annotations"), list) else []
+
+    return [
+        {
+            "exportedAt": record["savedAt"],
+            "participantId": record["participantId"],
+            "sessionId": record["sessionId"],
+            "runId": record["runId"],
+            "storageKey": record["storageKey"],
+            "taskVersion": task_payload.get("taskVersion"),
+            "datasetVersion": task_payload.get("datasetVersion"),
+            "completedArticles": task_payload.get("completedArticles"),
+            "totalArticles": task_payload.get("totalArticles"),
+            "row_id": article.get("row_id"),
+            "originalArticleId": article.get("originalArticleId"),
+            "annotationId": annotation.get("id"),
+            "type": annotation.get("type"),
+            "scope": annotation.get("scope"),
+            "section": annotation.get("section"),
+            "selectedText": annotation.get("text"),
+            "start": annotation.get("start"),
+            "end": annotation.get("end"),
+            "primaryCommentLabel": annotation.get("primaryCommentLabel"),
+            "primaryComment": annotation.get("primaryComment"),
+            "secondaryComment": annotation.get("secondaryComment"),
+            "severity": annotation.get("severity"),
+            "createdAt": annotation.get("createdAt"),
+            "updatedAt": annotation.get("updatedAt"),
+        }
+        for annotation in annotations
+    ]
+
+
+def append_only_annotation_records(record):
+    annotation_records = build_only_annotation_records(record)
+    if not annotation_records:
+        return {
+            "count": 0,
+            "file": str(ONLY_ANNOTATIONS_FILE.relative_to(ROOT_DIR)),
+        }
+
+    with file_lock(ONLY_ANNOTATIONS_LOCK_FILE, "only annotations"):
+        with ONLY_ANNOTATIONS_FILE.open("a", encoding="utf-8") as only_annotations:
+            for annotation_record in annotation_records:
+                only_annotations.write(json.dumps(annotation_record, ensure_ascii=False) + "\n")
+
+    return {
+        "count": len(annotation_records),
+        "file": str(ONLY_ANNOTATIONS_FILE.relative_to(ROOT_DIR)),
     }
 
 
@@ -270,6 +336,7 @@ def save_annotation_snapshot(payload):
         json.dumps(record, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
+    only_annotations = append_only_annotation_records(record)
 
     return {
         "ok": True,
@@ -278,6 +345,8 @@ def save_annotation_snapshot(payload):
         "status": record["status"],
         "eventFile": str(EVENTS_FILE.relative_to(ROOT_DIR)),
         "runFile": str(target_file.relative_to(ROOT_DIR)),
+        "onlyAnnotationsFile": only_annotations["file"],
+        "onlyAnnotationsAdded": only_annotations["count"],
     }
 
 

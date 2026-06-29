@@ -10,6 +10,8 @@ const RUNS_DIR = path.join(DATA_DIR, "runs");
 const EVENTS_DIR = path.join(DATA_DIR, "events");
 const ASSIGNMENTS_DIR = path.join(DATA_DIR, "assignments");
 const EVENTS_FILE = path.join(EVENTS_DIR, "annotation-events.jsonl");
+const ONLY_ANNOTATIONS_FILE = path.join(DATA_DIR, "only-annotations.jsonl");
+const ONLY_ANNOTATIONS_LOCK_FILE = path.join(DATA_DIR, "only-annotations.lock");
 const ASSIGNMENT_EVENTS_FILE = path.join(ASSIGNMENTS_DIR, "article-events.jsonl");
 const ASSIGNMENT_LOCK_FILE = path.join(ASSIGNMENTS_DIR, "article-events.lock");
 const AVAILABLE_ARTICLES_FILE = path.join(ASSIGNMENTS_DIR, "available-articles.json");
@@ -185,25 +187,25 @@ function sleep(milliseconds) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
-async function withAssignmentLock(callback) {
+async function withFileLock(lockFile, lockName, callback) {
   ensureStorage();
   const startedAt = Date.now();
 
   while (Date.now() - startedAt < 5000) {
     let lockHandle = null;
     try {
-      lockHandle = fs.openSync(ASSIGNMENT_LOCK_FILE, "wx");
+      lockHandle = fs.openSync(lockFile, "wx");
       fs.writeFileSync(lockHandle, `${process.pid}\n${new Date().toISOString()}\n`, "utf8");
-      return callback();
+      return await callback();
     } catch (error) {
       if (error.code !== "EEXIST") {
         throw error;
       }
 
       try {
-        const lockAge = Date.now() - fs.statSync(ASSIGNMENT_LOCK_FILE).mtimeMs;
+        const lockAge = Date.now() - fs.statSync(lockFile).mtimeMs;
         if (lockAge > 30000) {
-          fs.unlinkSync(ASSIGNMENT_LOCK_FILE);
+          fs.unlinkSync(lockFile);
         }
       } catch {
         // Another request may have released the lock between checks.
@@ -214,7 +216,7 @@ async function withAssignmentLock(callback) {
       if (lockHandle !== null) {
         fs.closeSync(lockHandle);
         try {
-          fs.unlinkSync(ASSIGNMENT_LOCK_FILE);
+          fs.unlinkSync(lockFile);
         } catch {
           // The lock was already cleaned up.
         }
@@ -222,7 +224,15 @@ async function withAssignmentLock(callback) {
     }
   }
 
-  throw new Error("Could not acquire article assignment lock.");
+  throw new Error(`Could not acquire ${lockName} lock.`);
+}
+
+async function withAssignmentLock(callback) {
+  return withFileLock(ASSIGNMENT_LOCK_FILE, "article assignment", callback);
+}
+
+async function withOnlyAnnotationsLock(callback) {
+  return withFileLock(ONLY_ANNOTATIONS_LOCK_FILE, "only annotations", callback);
 }
 
 function pickRandomArticles(articles, count) {
@@ -302,7 +312,65 @@ async function markArticleAnnotated(payload) {
   });
 }
 
-function saveAnnotationSnapshot(payload) {
+function buildOnlyAnnotationRecords(record) {
+  if (record.reason !== "article-finalized") {
+    return [];
+  }
+
+  const taskPayload = record.payload || {};
+  const articles = Array.isArray(taskPayload.articles) ? taskPayload.articles : [];
+  const article = articles[articles.length - 1];
+  const annotations = Array.isArray(article?.annotations) ? article.annotations : [];
+
+  return annotations.map((annotation) => ({
+    exportedAt: record.savedAt,
+    participantId: record.participantId,
+    sessionId: record.sessionId,
+    runId: record.runId,
+    storageKey: record.storageKey,
+    taskVersion: taskPayload.taskVersion || null,
+    datasetVersion: taskPayload.datasetVersion || null,
+    completedArticles: taskPayload.completedArticles ?? null,
+    totalArticles: taskPayload.totalArticles ?? null,
+    row_id: article.row_id ?? null,
+    originalArticleId: article.originalArticleId ?? null,
+    annotationId: annotation.id ?? null,
+    type: annotation.type ?? null,
+    scope: annotation.scope ?? null,
+    section: annotation.section ?? null,
+    selectedText: annotation.text ?? null,
+    start: annotation.start ?? null,
+    end: annotation.end ?? null,
+    primaryCommentLabel: annotation.primaryCommentLabel ?? null,
+    primaryComment: annotation.primaryComment ?? null,
+    secondaryComment: annotation.secondaryComment ?? null,
+    severity: annotation.severity ?? null,
+    createdAt: annotation.createdAt ?? null,
+    updatedAt: annotation.updatedAt ?? null,
+  }));
+}
+
+async function appendOnlyAnnotationRecords(record) {
+  const annotationRecords = buildOnlyAnnotationRecords(record);
+  if (annotationRecords.length === 0) {
+    return { count: 0, file: path.relative(ROOT_DIR, ONLY_ANNOTATIONS_FILE) };
+  }
+
+  await withOnlyAnnotationsLock(() => {
+    fs.appendFileSync(
+      ONLY_ANNOTATIONS_FILE,
+      `${annotationRecords.map((item) => JSON.stringify(item)).join("\n")}\n`,
+      "utf8",
+    );
+  });
+
+  return {
+    count: annotationRecords.length,
+    file: path.relative(ROOT_DIR, ONLY_ANNOTATIONS_FILE),
+  };
+}
+
+async function saveAnnotationSnapshot(payload) {
   ensureStorage();
 
   const storageKey = makeStorageKey(payload);
@@ -325,6 +393,7 @@ function saveAnnotationSnapshot(payload) {
   fs.mkdirSync(runDir, { recursive: true });
   fs.appendFileSync(EVENTS_FILE, `${JSON.stringify(record)}\n`, "utf8");
   fs.writeFileSync(targetFile, `${JSON.stringify(record, null, 2)}\n`, "utf8");
+  const onlyAnnotations = await appendOnlyAnnotationRecords(record);
 
   return {
     ok: true,
@@ -333,13 +402,15 @@ function saveAnnotationSnapshot(payload) {
     status: record.status,
     eventFile: path.relative(ROOT_DIR, EVENTS_FILE),
     runFile: path.relative(ROOT_DIR, targetFile),
+    onlyAnnotationsFile: onlyAnnotations.file,
+    onlyAnnotationsAdded: onlyAnnotations.count,
   };
 }
 
 async function handleSaveAnnotations(request, response) {
   try {
     const payload = await readRequestJson(request);
-    const result = saveAnnotationSnapshot(payload);
+    const result = await saveAnnotationSnapshot(payload);
     sendJson(response, 200, result);
   } catch (error) {
     sendJson(response, 400, {
