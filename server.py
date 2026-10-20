@@ -22,8 +22,11 @@ ONLY_ANNOTATIONS_LOCK_FILE = DATA_DIR / "only-annotations.lock"
 ASSIGNMENT_EVENTS_FILE = ASSIGNMENTS_DIR / "article-events.jsonl"
 ASSIGNMENT_LOCK_FILE = ASSIGNMENTS_DIR / "article-events.lock"
 AVAILABLE_ARTICLES_FILE = ASSIGNMENTS_DIR / "available-articles.json"
+PRIORITY_COHORT_FILE = ASSIGNMENTS_DIR / "priority-cohort.json"
 ARTICLE_DATASET_PATH = ROOT_DIR / "cleaned2604combined_none_middle50_by_length.jsonl"
 ARTICLE_CHOICES_PER_ROUND = 3
+PRIORITY_COHORT_SIZE = 100
+TARGET_ANNOTATIONS_PER_ARTICLE = 3
 MAX_BODY_BYTES = 5 * 1024 * 1024
 
 
@@ -131,6 +134,101 @@ def normalize_article_id(article_id):
     return match.group(1) if match else raw_article_id
 
 
+def participant_key(value):
+    """Normalize participant IDs for reliable self-exclusion and deduplication."""
+    return str(value or "").strip().casefold()
+
+
+def add_saved_articles_to_history(history, save_file):
+    try:
+        record = json.loads(save_file.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return
+
+    task_payload = record.get("payload") or {}
+    annotator = participant_key(
+        record.get("participantId")
+        or task_payload.get("participantId")
+        or record.get("storageKey")
+        or record.get("sessionId")
+    )
+    if not annotator:
+        return
+
+    for article in task_payload.get("articles") or []:
+        article_id = normalize_article_id(article.get("row_id"))
+        annotations = article.get("annotations") or []
+        # Only a genuinely annotated article seeds or advances the repeat pool.
+        if article_id and annotations:
+            history.setdefault(article_id, set()).add(annotator)
+
+
+def read_annotation_history():
+    """Return {row_id: {participant IDs}} from saved runs and assignment events."""
+    history = {}
+
+    if RUNS_DIR.exists():
+        for final_file in RUNS_DIR.glob("*/*/final.json"):
+            add_saved_articles_to_history(history, final_file)
+        # Include finalized articles in tasks that have not completed all rounds.
+        for snapshot_file in RUNS_DIR.glob("*/*/snapshot.json"):
+            add_saved_articles_to_history(history, snapshot_file)
+
+    if ASSIGNMENT_EVENTS_FILE.exists():
+        try:
+            with ASSIGNMENT_EVENTS_FILE.open("r", encoding="utf-8") as event_log:
+                for line in event_log:
+                    if not line.strip():
+                        continue
+                    try:
+                        event = json.loads(line)
+                    except json.JSONDecodeError:
+                        continue
+                    if event.get("type") != "annotated":
+                        continue
+                    article_id = normalize_article_id(
+                        event.get("row_id") or event.get("articleId")
+                    )
+                    annotator = participant_key(event.get("participantId"))
+                    if article_id and annotator:
+                        history.setdefault(article_id, set()).add(annotator)
+        except OSError:
+            pass
+
+    return history
+
+
+def read_priority_cohort(history, article_map):
+    """Create once, then preserve a stable cohort of up to 100 seeded articles."""
+    cohort = []
+    if PRIORITY_COHORT_FILE.exists():
+        try:
+            saved = json.loads(PRIORITY_COHORT_FILE.read_text(encoding="utf-8") or "[]")
+            if isinstance(saved, list):
+                cohort = [normalize_article_id(article_id) for article_id in saved]
+        except (OSError, json.JSONDecodeError):
+            cohort = []
+
+    cohort = list(dict.fromkeys(
+        article_id
+        for article_id in cohort
+        if article_id in history and article_id in article_map
+    ))
+    candidates = [
+        article_id
+        for article_id in history
+        if article_id in article_map and article_id not in cohort
+    ]
+    # Start with articles closest to three annotations to reach the first 100 quickly.
+    candidates.sort(key=lambda article_id: (-len(history[article_id]), article_id))
+    cohort.extend(candidates[:max(0, PRIORITY_COHORT_SIZE - len(cohort))])
+    PRIORITY_COHORT_FILE.write_text(
+        json.dumps(cohort, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    return cohort
+
+
 def append_assignment_event(event):
     record = {
         "createdAt": datetime.now(timezone.utc).isoformat(),
@@ -186,22 +284,39 @@ def assign_article_options(payload):
 
     with file_lock(ASSIGNMENT_LOCK_FILE, "article assignment"):
         article_map = get_article_map()
-        available_article_ids = [
-            article_id
-            for article_id in read_available_article_ids()
-            if article_id in article_map
-        ]
-        if len(available_article_ids) < ARTICLE_CHOICES_PER_ROUND:
-            raise ValueError("There are not enough available articles to assign.")
+        history = read_annotation_history()
+        priority_cohort = read_priority_cohort(history, article_map)
+        current_participant = participant_key(participant_id)
 
-        chosen_article_ids = random.sample(available_article_ids, ARTICLE_CHOICES_PER_ROUND)
-        chosen_article_id_set = set(chosen_article_ids)
-        options = [article_map[article_id] for article_id in chosen_article_ids]
-        write_available_article_ids([
+        def is_eligible(article_id):
+            annotators = history.get(article_id, set())
+            return (
+                article_id in article_map
+                and 0 < len(annotators) < TARGET_ANNOTATIONS_PER_ARTICLE
+                and current_participant not in annotators
+            )
+
+        priority_ids = [article_id for article_id in priority_cohort if is_eligible(article_id)]
+        remaining_ids = [
             article_id
-            for article_id in available_article_ids
-            if article_id not in chosen_article_id_set
-        ])
+            for article_id in history
+            if article_id not in set(priority_cohort) and is_eligible(article_id)
+        ]
+        priority_set = set(priority_cohort)
+        candidate_ids = priority_ids + remaining_ids
+        if not candidate_ids:
+            raise ValueError(
+                "No eligible previously annotated articles remain for this participant."
+            )
+
+        # Prefer articles nearest the target; randomize ties so participants vary.
+        random.shuffle(candidate_ids)
+        candidate_ids.sort(key=lambda article_id: (
+            0 if article_id in priority_set else 1,
+            -len(history[article_id]),
+        ))
+        chosen_article_ids = candidate_ids[:ARTICLE_CHOICES_PER_ROUND]
+        options = [article_map[article_id] for article_id in chosen_article_ids]
         append_assignment_event({
             "type": "shown_unselected",
             "participantId": participant_id,
@@ -215,9 +330,16 @@ def assign_article_options(payload):
         "status": "shown_unselected",
         "round": round_number,
         "options": options,
-        "availableArticleCount": len(available_article_ids) - len(options),
+        "eligibleArticleCount": len(candidate_ids),
+        "priorityCohortSize": len(priority_cohort),
+        "priorityArticlesAtTarget": sum(
+            1
+            for article_id in priority_cohort
+            if len(history.get(article_id, set())) >= TARGET_ANNOTATIONS_PER_ARTICLE
+        ),
+        "targetAnnotationsPerArticle": TARGET_ANNOTATIONS_PER_ARTICLE,
         "assignmentEventFile": str(ASSIGNMENT_EVENTS_FILE.relative_to(ROOT_DIR)),
-        "availableArticlesFile": str(AVAILABLE_ARTICLES_FILE.relative_to(ROOT_DIR)),
+        "priorityCohortFile": str(PRIORITY_COHORT_FILE.relative_to(ROOT_DIR)),
     }
 
 

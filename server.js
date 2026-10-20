@@ -15,8 +15,11 @@ const ONLY_ANNOTATIONS_LOCK_FILE = path.join(DATA_DIR, "only-annotations.lock");
 const ASSIGNMENT_EVENTS_FILE = path.join(ASSIGNMENTS_DIR, "article-events.jsonl");
 const ASSIGNMENT_LOCK_FILE = path.join(ASSIGNMENTS_DIR, "article-events.lock");
 const AVAILABLE_ARTICLES_FILE = path.join(ASSIGNMENTS_DIR, "available-articles.json");
+const PRIORITY_COHORT_FILE = path.join(ASSIGNMENTS_DIR, "priority-cohort.json");
 const ARTICLE_DATASET_PATH = path.join(ROOT_DIR, "cleaned2604combined_none_middle50_by_length.jsonl");
 const ARTICLE_CHOICES_PER_ROUND = 3;
+const PRIORITY_COHORT_SIZE = 100;
+const TARGET_ANNOTATIONS_PER_ARTICLE = 3;
 const MAX_BODY_BYTES = 5 * 1024 * 1024;
 
 const MIME_TYPES = {
@@ -175,6 +178,90 @@ function normalizeArticleId(articleId) {
   return rowMatch ? rowMatch[1] : rawArticleId;
 }
 
+function participantKey(value) {
+  return String(value || "").trim().toLocaleLowerCase();
+}
+
+function addSavedArticlesToHistory(history, saveFile) {
+  let record;
+  try {
+    record = JSON.parse(fs.readFileSync(saveFile, "utf8"));
+  } catch {
+    return;
+  }
+
+  const taskPayload = record.payload || {};
+  const annotator = participantKey(
+    record.participantId || taskPayload.participantId || record.storageKey || record.sessionId,
+  );
+  if (!annotator) return;
+
+  for (const article of taskPayload.articles || []) {
+    const articleId = normalizeArticleId(article.row_id);
+    if (!articleId || !(article.annotations || []).length) continue;
+    if (!history.has(articleId)) history.set(articleId, new Set());
+    history.get(articleId).add(annotator);
+  }
+}
+
+function readAnnotationHistory() {
+  const history = new Map();
+  if (fs.existsSync(RUNS_DIR)) {
+    for (const participantEntry of fs.readdirSync(RUNS_DIR, { withFileTypes: true })) {
+      if (!participantEntry.isDirectory()) continue;
+      const participantDir = path.join(RUNS_DIR, participantEntry.name);
+      for (const runEntry of fs.readdirSync(participantDir, { withFileTypes: true })) {
+        if (!runEntry.isDirectory()) continue;
+        const runDir = path.join(participantDir, runEntry.name);
+        for (const fileName of ["final.json", "snapshot.json"]) {
+          const saveFile = path.join(runDir, fileName);
+          if (fs.existsSync(saveFile)) addSavedArticlesToHistory(history, saveFile);
+        }
+      }
+    }
+  }
+
+  if (fs.existsSync(ASSIGNMENT_EVENTS_FILE)) {
+    for (const line of fs.readFileSync(ASSIGNMENT_EVENTS_FILE, "utf8").split(/\r?\n/)) {
+      if (!line.trim()) continue;
+      let event;
+      try {
+        event = JSON.parse(line);
+      } catch {
+        continue;
+      }
+      if (event.type !== "annotated") continue;
+      const articleId = normalizeArticleId(event.row_id || event.articleId);
+      const annotator = participantKey(event.participantId);
+      if (!articleId || !annotator) continue;
+      if (!history.has(articleId)) history.set(articleId, new Set());
+      history.get(articleId).add(annotator);
+    }
+  }
+  return history;
+}
+
+function readPriorityCohort(history, articleMap) {
+  let cohort = [];
+  if (fs.existsSync(PRIORITY_COHORT_FILE)) {
+    try {
+      const saved = JSON.parse(fs.readFileSync(PRIORITY_COHORT_FILE, "utf8") || "[]");
+      if (Array.isArray(saved)) cohort = saved.map(normalizeArticleId);
+    } catch {
+      cohort = [];
+    }
+  }
+
+  cohort = [...new Set(cohort.filter((articleId) => history.has(articleId) && articleMap.has(articleId)))];
+  const cohortSet = new Set(cohort);
+  const candidates = [...history.keys()]
+    .filter((articleId) => articleMap.has(articleId) && !cohortSet.has(articleId))
+    .sort((left, right) => history.get(right).size - history.get(left).size || left.localeCompare(right));
+  cohort.push(...candidates.slice(0, Math.max(0, PRIORITY_COHORT_SIZE - cohort.length)));
+  fs.writeFileSync(PRIORITY_COHORT_FILE, `${JSON.stringify(cohort, null, 2)}\n`, "utf8");
+  return cohort;
+}
+
 function appendAssignmentEvent(event) {
   fs.appendFileSync(
     ASSIGNMENT_EVENTS_FILE,
@@ -252,17 +339,36 @@ async function assignArticleOptions(payload) {
 
   return withAssignmentLock(() => {
     const articleMap = getArticleMap();
-    const availableArticleIds = readAvailableArticleIds().filter((articleId) => articleMap.has(articleId));
-    if (availableArticleIds.length < ARTICLE_CHOICES_PER_ROUND) {
-      throw new Error("There are not enough available articles to assign.");
+    const history = readAnnotationHistory();
+    const priorityCohort = readPriorityCohort(history, articleMap);
+    const prioritySet = new Set(priorityCohort);
+    const currentParticipant = participantKey(participantId);
+    const isEligible = (articleId) => {
+      const annotators = history.get(articleId) || new Set();
+      return (
+        articleMap.has(articleId) &&
+        annotators.size > 0 &&
+        annotators.size < TARGET_ANNOTATIONS_PER_ARTICLE &&
+        !annotators.has(currentParticipant)
+      );
+    };
+    const priorityIds = priorityCohort.filter(isEligible);
+    const remainingIds = [...history.keys()].filter(
+      (articleId) => !prioritySet.has(articleId) && isEligible(articleId),
+    );
+    const candidateIds = [...priorityIds, ...remainingIds];
+    if (!candidateIds.length) {
+      throw new Error("No eligible previously annotated articles remain for this participant.");
     }
 
-    const chosenArticleIds = pickRandomArticles(availableArticleIds, ARTICLE_CHOICES_PER_ROUND);
-    const chosenArticleIdSet = new Set(chosenArticleIds);
+    const chosenArticleIds = [...candidateIds]
+      .sort(() => Math.random() - 0.5)
+      .sort((left, right) => {
+        const cohortDifference = Number(!prioritySet.has(left)) - Number(!prioritySet.has(right));
+        return cohortDifference || history.get(right).size - history.get(left).size;
+      })
+      .slice(0, ARTICLE_CHOICES_PER_ROUND);
     const options = chosenArticleIds.map((articleId) => articleMap.get(articleId));
-    writeAvailableArticleIds(
-      availableArticleIds.filter((articleId) => !chosenArticleIdSet.has(articleId)),
-    );
 
     appendAssignmentEvent({
       type: "shown_unselected",
@@ -277,9 +383,14 @@ async function assignArticleOptions(payload) {
       status: "shown_unselected",
       round,
       options,
-      availableArticleCount: availableArticleIds.length - options.length,
+      eligibleArticleCount: candidateIds.length,
+      priorityCohortSize: priorityCohort.length,
+      priorityArticlesAtTarget: priorityCohort.filter(
+        (articleId) => (history.get(articleId) || new Set()).size >= TARGET_ANNOTATIONS_PER_ARTICLE,
+      ).length,
+      targetAnnotationsPerArticle: TARGET_ANNOTATIONS_PER_ARTICLE,
       assignmentEventFile: path.relative(ROOT_DIR, ASSIGNMENT_EVENTS_FILE),
-      availableArticlesFile: path.relative(ROOT_DIR, AVAILABLE_ARTICLES_FILE),
+      priorityCohortFile: path.relative(ROOT_DIR, PRIORITY_COHORT_FILE),
     };
   });
 }
