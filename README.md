@@ -42,14 +42,18 @@ Opening [index.html](C:\Users\edaha\platform\index.html) directly still works fo
 
 ## Repeat-annotation assignment
 
-The assignment API now builds its pool only from articles that already have saved
-annotations. It counts unique participant IDs per article and:
+The assignment API now automatically assigns one article at a time from articles
+that already have saved annotations. It counts unique participant IDs per article and:
 
 - never shows a participant an article they previously annotated;
 - keeps a stable priority cohort in `saved_annotations/assignments/priority-cohort.json`;
 - prioritizes bringing up to 100 articles to three unique annotators each;
 - moves on to the remaining previously annotated articles after that cohort reaches the target;
 - stops offering an article once it has three unique annotators.
+- reserves assignments for two hours so concurrent participants do not push an article
+  beyond the three-annotator target;
+- treats participant ID `noam` as read-only test mode: the complete interface works,
+  but no snapshots, final files, annotation exports, reservations, or events are saved.
 
 The history is reconstructed from `final.json`, `snapshot.json`, and `annotated`
 assignment events, so existing saved work seeds the new assignment pool. Participant

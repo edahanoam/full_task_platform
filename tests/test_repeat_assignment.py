@@ -8,7 +8,9 @@ import server
 
 class RepeatAssignmentTests(unittest.TestCase):
     def setUp(self):
-        self.temp_dir = tempfile.TemporaryDirectory()
+        test_temp_root = Path(__file__).resolve().parents[1] / ".test_tmp"
+        test_temp_root.mkdir(exist_ok=True)
+        self.temp_dir = tempfile.TemporaryDirectory(dir=test_temp_root)
         root = Path(self.temp_dir.name)
         server.ROOT_DIR = root
         server.DATA_DIR = root / "saved_annotations"
@@ -19,6 +21,7 @@ class RepeatAssignmentTests(unittest.TestCase):
         server.ASSIGNMENT_EVENTS_FILE = server.ASSIGNMENTS_DIR / "article-events.jsonl"
         server.ASSIGNMENT_LOCK_FILE = server.ASSIGNMENTS_DIR / "article-events.lock"
         server.PRIORITY_COHORT_FILE = server.ASSIGNMENTS_DIR / "priority-cohort.json"
+        server.ASSIGNMENT_RESERVATIONS_FILE = server.ASSIGNMENTS_DIR / "article-reservations.json"
         server.ARTICLE_DATASET_PATH = root / "articles.jsonl"
         server.ensure_storage()
 
@@ -33,7 +36,8 @@ class RepeatAssignmentTests(unittest.TestCase):
 
         self.save_run("alice", ["1", "2"])
         self.save_run("bob", ["1", "3"])
-        self.save_run("carol", ["1"])
+        self.save_run("carol", ["1", "3"])
+        self.save_run("noam", ["4"])
 
     def tearDown(self):
         self.temp_dir.cleanup()
@@ -61,8 +65,54 @@ class RepeatAssignmentTests(unittest.TestCase):
 
         self.assertEqual(option_ids, {"3"})
         self.assertNotIn("2", option_ids)  # Alice already annotated it.
-        self.assertNotIn("4", option_ids)  # Nobody has annotated it.
+        self.assertNotIn("4", option_ids)  # Read-only test data does not seed the pool.
         self.assertNotIn("1", option_ids)  # It already has three annotators.
+
+    def test_assignment_is_automatic_idempotent_and_reserved(self):
+        first = server.assign_article_options(
+            {"participantId": "Alice", "runId": "new-run", "round": 1}
+        )
+        repeated = server.assign_article_options(
+            {"participantId": "Alice", "runId": "new-run", "round": 1}
+        )
+
+        self.assertEqual(len(first["options"]), 1)
+        self.assertEqual(first["options"][0]["row_id"], "3")
+        self.assertEqual(repeated["options"][0]["row_id"], "3")
+        reservations = json.loads(
+            server.ASSIGNMENT_RESERVATIONS_FILE.read_text(encoding="utf-8")
+        )
+        self.assertEqual(len(reservations), 1)
+
+        # Article 3 has two completed annotators plus Alice's reservation, so a
+        # concurrent participant must receive another article.
+        concurrent = server.assign_article_options(
+            {"participantId": "Dave", "runId": "other-run", "round": 1}
+        )
+        self.assertEqual(concurrent["options"][0]["row_id"], "2")
+
+    def test_noam_can_use_interface_without_writing_data(self):
+        result = server.assign_article_options(
+            {"participantId": "NoAm", "runId": "test-run", "round": 1}
+        )
+        save_result = server.save_annotation_snapshot({
+            "participantId": "noam",
+            "runId": "test-run",
+            "payload": {"articles": []},
+        })
+        mark_result = server.mark_article_annotated({
+            "participantId": "noam",
+            "runId": "test-run",
+            "round": 1,
+            "row_id": result["options"][0]["row_id"],
+        })
+
+        self.assertTrue(result["testMode"])
+        self.assertTrue(save_result["notSaved"])
+        self.assertTrue(mark_result["notSaved"])
+        self.assertFalse(server.PRIORITY_COHORT_FILE.exists())
+        self.assertFalse(server.ASSIGNMENT_RESERVATIONS_FILE.exists())
+        self.assertFalse(server.ASSIGNMENT_EVENTS_FILE.exists())
 
 
 if __name__ == "__main__":

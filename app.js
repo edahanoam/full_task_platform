@@ -4,10 +4,11 @@ const ANNOTATION_SAVE_PATH = "/api/annotations/save";
 const ARTICLE_OPTIONS_PATH = "/api/articles/options";
 const ARTICLE_ANNOTATED_PATH = "/api/articles/annotated";
 const LOCAL_SESSION_KEY = "annotation_task_session_id";
-const TASK_VERSION = "repeat-annotation-priority-100-v1";
-const ARTICLE_CHOICES_PER_ROUND = 3;
+const TASK_VERSION = "repeat-annotation-no-choice-priority-100-v1";
+const ARTICLE_CHOICES_PER_ROUND = 1;
 const ARTICLES_PER_TASK = 5;
 const SAVE_DEBOUNCE_MS = 700;
+const READ_ONLY_TEST_PARTICIPANT = "noam";
 
 let articles = [];
 let saveDebounceTimer = null;
@@ -409,7 +410,7 @@ async function initApp() {
 }
 
 function setLoadingState() {
-  elements.articleStep.textContent = "Waiting for article choice...";
+  elements.articleStep.textContent = "Waiting for assigned article...";
   elements.articleTitle.textContent = "Loading article title...";
   elements.articleByline.textContent = "Loading source information...";
   elements.article.replaceChildren(createParagraph("Article text will appear here when the task loads."));
@@ -646,49 +647,18 @@ async function showArticleChoiceScreen() {
     state.currentChoiceOptions = await fetchArticleOptions();
   } catch (error) {
     showSubmissionNote(error.message || String(error), true);
-    window.alert(`Could not load article choices. ${error.message || error}`);
+    window.alert(`Could not load an assigned article. ${error.message || error}`);
     return;
   }
 
-  elements.articleChoiceList.replaceChildren();
-  elements.choiceStep.textContent =
-    `Article ${state.finalizedArticles.length + 1} of ${getTargetArticleCount()}`;
+  const assignedArticle = state.currentChoiceOptions[0];
+  if (!assignedArticle) {
+    showSubmissionNote("No eligible assigned article is available.", true);
+    window.alert("No eligible assigned article is available.");
+    return;
+  }
 
-  state.currentChoiceOptions.forEach((article) => {
-    const card = document.createElement("article");
-    card.className = "article-choice-card";
-
-    const chooseButton = document.createElement("button");
-    chooseButton.className = "article-choice-button";
-    chooseButton.type = "button";
-    chooseButton.dataset.rowId = article.row_id;
-
-    const radioMark = document.createElement("span");
-    radioMark.className = "article-choice-radio";
-    radioMark.setAttribute("aria-hidden", "true");
-
-    const radioLabel = document.createElement("span");
-    radioLabel.textContent = "Click to choose this article";
-
-    chooseButton.append(radioMark, radioLabel);
-
-    const title = document.createElement("h3");
-    title.textContent = article.title;
-
-    const summary = document.createElement("p");
-    summary.className = "article-choice-summary";
-    summary.textContent = getArticleChoiceSummary(article);
-
-    card.append(chooseButton, title, summary);
-    elements.articleChoiceList.appendChild(card);
-  });
-
-  elements.guidelinesScreen?.classList.add("is-hidden");
-  elements.platformScreen?.classList.add("is-hidden");
-  elements.choiceScreen?.classList.remove("is-hidden");
-  elements.taskScreen?.classList.add("is-hidden");
-  elements.completionScreen?.classList.add("is-hidden");
-  window.scrollTo({ top: 0, behavior: "auto" });
+  chooseArticle(assignedArticle.row_id);
 }
 
 function chooseArticle(rowId) {
@@ -715,6 +685,9 @@ function chooseArticle(rowId) {
   elements.choiceScreen?.classList.add("is-hidden");
   elements.taskScreen?.classList.remove("is-hidden");
   loadCurrentArticle();
+  if (isReadOnlyTestMode()) {
+    showSubmissionNote("Read-only test mode: nothing you enter will be saved.", false);
+  }
   window.scrollTo({ top: 0, behavior: "auto" });
 }
 
@@ -1067,7 +1040,9 @@ async function finalizeCurrentArticle() {
   if (state.finalizedArticles.length < getTargetArticleCount()) {
     state.currentAnnotations = [];
     showSubmissionNote(
-      `Article ${state.finalizedArticles.length} saved. Choose the next article to annotate.`,
+      isReadOnlyTestMode()
+        ? `Test article ${state.finalizedArticles.length} complete. Nothing was saved. Loading the next article.`
+        : `Article ${state.finalizedArticles.length} saved. Loading the next article.`,
       false,
     );
     showArticleChoiceScreen();
@@ -1091,7 +1066,15 @@ function showCompletionScreen() {
   elements.choiceScreen?.classList.add("is-hidden");
   elements.taskScreen?.classList.add("is-hidden");
   elements.completionScreen?.classList.remove("is-hidden");
+  const completionMessage = elements.completionScreen?.querySelector(".completion-message");
+  if (completionMessage && isReadOnlyTestMode()) {
+    completionMessage.textContent = "Read-only test completed. No annotation data was saved.";
+  }
   window.scrollTo({ top: 0, behavior: "auto" });
+}
+
+function isReadOnlyTestMode() {
+  return elements.participantId.value.trim().toLowerCase() === READ_ONLY_TEST_PARTICIPANT;
 }
 
 function buildSubmissionPayload() {
@@ -1190,7 +1173,8 @@ function buildArticlePayload(article, annotations) {
 function validateAnnotations(annotations) {
   const factualTakeawayCount = getAnnotationCount("comment", annotations);
   const pointOfConcernCount = getAnnotationCount("issue", annotations);
-  const isTestParticipant = elements.participantId.value.trim().toLowerCase() === "test";
+  const normalizedParticipantId = elements.participantId.value.trim().toLowerCase();
+  const isTestParticipant = normalizedParticipantId === "test" || isReadOnlyTestMode();
 
   if (!isTestParticipant && factualTakeawayCount < 2) {
     return {

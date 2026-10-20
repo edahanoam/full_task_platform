@@ -7,7 +7,7 @@ import re
 import random
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 
 PORT = int(os.environ.get("PORT", "3000"))
@@ -23,10 +23,13 @@ ASSIGNMENT_EVENTS_FILE = ASSIGNMENTS_DIR / "article-events.jsonl"
 ASSIGNMENT_LOCK_FILE = ASSIGNMENTS_DIR / "article-events.lock"
 AVAILABLE_ARTICLES_FILE = ASSIGNMENTS_DIR / "available-articles.json"
 PRIORITY_COHORT_FILE = ASSIGNMENTS_DIR / "priority-cohort.json"
+ASSIGNMENT_RESERVATIONS_FILE = ASSIGNMENTS_DIR / "article-reservations.json"
 ARTICLE_DATASET_PATH = ROOT_DIR / "cleaned2604combined_none_middle50_by_length.jsonl"
-ARTICLE_CHOICES_PER_ROUND = 3
+ARTICLE_CHOICES_PER_ROUND = 1
 PRIORITY_COHORT_SIZE = 100
 TARGET_ANNOTATIONS_PER_ARTICLE = 3
+ASSIGNMENT_RESERVATION_MINUTES = 120
+READ_ONLY_TEST_PARTICIPANT = "noam"
 MAX_BODY_BYTES = 5 * 1024 * 1024
 
 
@@ -139,6 +142,10 @@ def participant_key(value):
     return str(value or "").strip().casefold()
 
 
+def is_read_only_test_participant(value):
+    return participant_key(value) == READ_ONLY_TEST_PARTICIPANT
+
+
 def add_saved_articles_to_history(history, save_file):
     try:
         record = json.loads(save_file.read_text(encoding="utf-8"))
@@ -152,7 +159,7 @@ def add_saved_articles_to_history(history, save_file):
         or record.get("storageKey")
         or record.get("sessionId")
     )
-    if not annotator:
+    if not annotator or is_read_only_test_participant(annotator):
         return
 
     for article in task_payload.get("articles") or []:
@@ -190,7 +197,7 @@ def read_annotation_history():
                         event.get("row_id") or event.get("articleId")
                     )
                     annotator = participant_key(event.get("participantId"))
-                    if article_id and annotator:
+                    if article_id and annotator and not is_read_only_test_participant(annotator):
                         history.setdefault(article_id, set()).add(annotator)
         except OSError:
             pass
@@ -198,7 +205,7 @@ def read_annotation_history():
     return history
 
 
-def read_priority_cohort(history, article_map):
+def read_priority_cohort(history, article_map, persist=True):
     """Create once, then preserve a stable cohort of up to 100 seeded articles."""
     cohort = []
     if PRIORITY_COHORT_FILE.exists():
@@ -222,11 +229,46 @@ def read_priority_cohort(history, article_map):
     # Start with articles closest to three annotations to reach the first 100 quickly.
     candidates.sort(key=lambda article_id: (-len(history[article_id]), article_id))
     cohort.extend(candidates[:max(0, PRIORITY_COHORT_SIZE - len(cohort))])
-    PRIORITY_COHORT_FILE.write_text(
-        json.dumps(cohort, ensure_ascii=False, indent=2) + "\n",
+    if persist:
+        PRIORITY_COHORT_FILE.write_text(
+            json.dumps(cohort, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+    return cohort
+
+
+def read_assignment_reservations():
+    if not ASSIGNMENT_RESERVATIONS_FILE.exists():
+        return []
+    try:
+        reservations = json.loads(
+            ASSIGNMENT_RESERVATIONS_FILE.read_text(encoding="utf-8") or "[]"
+        )
+    except (OSError, json.JSONDecodeError):
+        return []
+    return reservations if isinstance(reservations, list) else []
+
+
+def active_assignment_reservations(reservations, now=None):
+    now = now or datetime.now(timezone.utc)
+    active = []
+    for reservation in reservations:
+        try:
+            expires_at = datetime.fromisoformat(
+                str(reservation.get("expiresAt") or "").replace("Z", "+00:00")
+            )
+        except ValueError:
+            continue
+        if expires_at > now:
+            active.append(reservation)
+    return active
+
+
+def write_assignment_reservations(reservations):
+    ASSIGNMENT_RESERVATIONS_FILE.write_text(
+        json.dumps(reservations, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
-    return cohort
 
 
 def append_assignment_event(event):
@@ -282,18 +324,39 @@ def assign_article_options(payload):
     if not participant_id or not run_id:
         raise ValueError("participantId and runId are required.")
 
+    test_mode = is_read_only_test_participant(participant_id)
+
     with file_lock(ASSIGNMENT_LOCK_FILE, "article assignment"):
         article_map = get_article_map()
         history = read_annotation_history()
-        priority_cohort = read_priority_cohort(history, article_map)
+        priority_cohort = read_priority_cohort(history, article_map, persist=not test_mode)
         current_participant = participant_key(participant_id)
+        reservations = active_assignment_reservations(read_assignment_reservations())
+
+        existing_reservation = next((
+            reservation
+            for reservation in reservations
+            if participant_key(reservation.get("participantId")) == current_participant
+            and str(reservation.get("runId") or "") == run_id
+            and int(reservation.get("round") or 0) == round_number
+            and normalize_article_id(reservation.get("row_id")) in article_map
+        ), None)
+
+        reserved_annotators = {}
+        for reservation in reservations:
+            article_id = normalize_article_id(reservation.get("row_id"))
+            annotator = participant_key(reservation.get("participantId"))
+            if article_id and annotator:
+                reserved_annotators.setdefault(article_id, set()).add(annotator)
 
         def is_eligible(article_id):
             annotators = history.get(article_id, set())
+            effective_annotators = annotators | reserved_annotators.get(article_id, set())
             return (
                 article_id in article_map
                 and 0 < len(annotators) < TARGET_ANNOTATIONS_PER_ARTICLE
-                and current_participant not in annotators
+                and len(effective_annotators) < TARGET_ANNOTATIONS_PER_ARTICLE
+                and (test_mode or current_participant not in effective_annotators)
             )
 
         priority_ids = [article_id for article_id in priority_cohort if is_eligible(article_id)]
@@ -304,30 +367,49 @@ def assign_article_options(payload):
         ]
         priority_set = set(priority_cohort)
         candidate_ids = priority_ids + remaining_ids
-        if not candidate_ids:
+        if existing_reservation and not test_mode:
+            chosen_article_ids = [normalize_article_id(existing_reservation.get("row_id"))]
+        elif not candidate_ids:
             raise ValueError(
                 "No eligible previously annotated articles remain for this participant."
             )
+        else:
+            # Prefer articles nearest the target; randomize ties so participants vary.
+            random.shuffle(candidate_ids)
+            candidate_ids.sort(key=lambda article_id: (
+                0 if article_id in priority_set else 1,
+                -len(history[article_id]),
+            ))
+            chosen_article_ids = candidate_ids[:ARTICLE_CHOICES_PER_ROUND]
 
-        # Prefer articles nearest the target; randomize ties so participants vary.
-        random.shuffle(candidate_ids)
-        candidate_ids.sort(key=lambda article_id: (
-            0 if article_id in priority_set else 1,
-            -len(history[article_id]),
-        ))
-        chosen_article_ids = candidate_ids[:ARTICLE_CHOICES_PER_ROUND]
+        if not test_mode and not existing_reservation:
+            reservations.append({
+                "participantId": participant_id,
+                "runId": run_id,
+                "round": round_number,
+                "row_id": chosen_article_ids[0],
+                "createdAt": datetime.now(timezone.utc).isoformat(),
+                "expiresAt": (
+                    datetime.now(timezone.utc)
+                    + timedelta(minutes=ASSIGNMENT_RESERVATION_MINUTES)
+                ).isoformat(),
+            })
+            write_assignment_reservations(reservations)
+
         options = [article_map[article_id] for article_id in chosen_article_ids]
-        append_assignment_event({
-            "type": "shown_unselected",
-            "participantId": participant_id,
-            "runId": run_id,
-            "round": round_number,
-            "row_ids": [article["row_id"] for article in options],
-        })
+        if not test_mode and not existing_reservation:
+            append_assignment_event({
+                "type": "assigned",
+                "participantId": participant_id,
+                "runId": run_id,
+                "round": round_number,
+                "row_id": chosen_article_ids[0],
+            })
 
     return {
         "ok": True,
-        "status": "shown_unselected",
+        "status": "test" if test_mode else "assigned",
+        "testMode": test_mode,
         "round": round_number,
         "options": options,
         "eligibleArticleCount": len(candidate_ids),
@@ -352,6 +434,15 @@ def mark_article_annotated(payload):
     if not participant_id or not run_id or not article_id:
         raise ValueError("participantId, runId, and articleId are required.")
 
+    if is_read_only_test_participant(participant_id):
+        return {
+            "ok": True,
+            "status": "test",
+            "testMode": True,
+            "notSaved": True,
+            "row_id": article_id,
+        }
+
     with file_lock(ASSIGNMENT_LOCK_FILE, "article assignment"):
         append_assignment_event({
             "type": "annotated",
@@ -360,6 +451,16 @@ def mark_article_annotated(payload):
             "round": round_number,
             "row_id": article_id,
         })
+        reservations = active_assignment_reservations(read_assignment_reservations())
+        reservations = [
+            reservation
+            for reservation in reservations
+            if not (
+                participant_key(reservation.get("participantId")) == participant_key(participant_id)
+                and normalize_article_id(reservation.get("row_id")) == article_id
+            )
+        ]
+        write_assignment_reservations(reservations)
 
     return {
         "ok": True,
@@ -429,6 +530,16 @@ def append_only_annotation_records(record):
 
 
 def save_annotation_snapshot(payload):
+    participant_id = str(payload.get("participantId") or "").strip()
+    if is_read_only_test_participant(participant_id):
+        return {
+            "ok": True,
+            "status": "test",
+            "testMode": True,
+            "notSaved": True,
+            "message": "Read-only test participant; annotation data was not saved.",
+        }
+
     ensure_storage()
 
     storage_key = make_storage_key(payload)

@@ -16,10 +16,13 @@ const ASSIGNMENT_EVENTS_FILE = path.join(ASSIGNMENTS_DIR, "article-events.jsonl"
 const ASSIGNMENT_LOCK_FILE = path.join(ASSIGNMENTS_DIR, "article-events.lock");
 const AVAILABLE_ARTICLES_FILE = path.join(ASSIGNMENTS_DIR, "available-articles.json");
 const PRIORITY_COHORT_FILE = path.join(ASSIGNMENTS_DIR, "priority-cohort.json");
+const ASSIGNMENT_RESERVATIONS_FILE = path.join(ASSIGNMENTS_DIR, "article-reservations.json");
 const ARTICLE_DATASET_PATH = path.join(ROOT_DIR, "cleaned2604combined_none_middle50_by_length.jsonl");
-const ARTICLE_CHOICES_PER_ROUND = 3;
+const ARTICLE_CHOICES_PER_ROUND = 1;
 const PRIORITY_COHORT_SIZE = 100;
 const TARGET_ANNOTATIONS_PER_ARTICLE = 3;
+const ASSIGNMENT_RESERVATION_MINUTES = 120;
+const READ_ONLY_TEST_PARTICIPANT = "noam";
 const MAX_BODY_BYTES = 5 * 1024 * 1024;
 
 const MIME_TYPES = {
@@ -182,6 +185,10 @@ function participantKey(value) {
   return String(value || "").trim().toLocaleLowerCase();
 }
 
+function isReadOnlyTestParticipant(value) {
+  return participantKey(value) === READ_ONLY_TEST_PARTICIPANT;
+}
+
 function addSavedArticlesToHistory(history, saveFile) {
   let record;
   try {
@@ -194,7 +201,7 @@ function addSavedArticlesToHistory(history, saveFile) {
   const annotator = participantKey(
     record.participantId || taskPayload.participantId || record.storageKey || record.sessionId,
   );
-  if (!annotator) return;
+  if (!annotator || isReadOnlyTestParticipant(annotator)) return;
 
   for (const article of taskPayload.articles || []) {
     const articleId = normalizeArticleId(article.row_id);
@@ -233,7 +240,7 @@ function readAnnotationHistory() {
       if (event.type !== "annotated") continue;
       const articleId = normalizeArticleId(event.row_id || event.articleId);
       const annotator = participantKey(event.participantId);
-      if (!articleId || !annotator) continue;
+      if (!articleId || !annotator || isReadOnlyTestParticipant(annotator)) continue;
       if (!history.has(articleId)) history.set(articleId, new Set());
       history.get(articleId).add(annotator);
     }
@@ -241,7 +248,7 @@ function readAnnotationHistory() {
   return history;
 }
 
-function readPriorityCohort(history, articleMap) {
+function readPriorityCohort(history, articleMap, persist = true) {
   let cohort = [];
   if (fs.existsSync(PRIORITY_COHORT_FILE)) {
     try {
@@ -258,8 +265,35 @@ function readPriorityCohort(history, articleMap) {
     .filter((articleId) => articleMap.has(articleId) && !cohortSet.has(articleId))
     .sort((left, right) => history.get(right).size - history.get(left).size || left.localeCompare(right));
   cohort.push(...candidates.slice(0, Math.max(0, PRIORITY_COHORT_SIZE - cohort.length)));
-  fs.writeFileSync(PRIORITY_COHORT_FILE, `${JSON.stringify(cohort, null, 2)}\n`, "utf8");
+  if (persist) {
+    fs.writeFileSync(PRIORITY_COHORT_FILE, `${JSON.stringify(cohort, null, 2)}\n`, "utf8");
+  }
   return cohort;
+}
+
+function readAssignmentReservations() {
+  if (!fs.existsSync(ASSIGNMENT_RESERVATIONS_FILE)) return [];
+  try {
+    const reservations = JSON.parse(fs.readFileSync(ASSIGNMENT_RESERVATIONS_FILE, "utf8") || "[]");
+    return Array.isArray(reservations) ? reservations : [];
+  } catch {
+    return [];
+  }
+}
+
+function activeAssignmentReservations(reservations, now = Date.now()) {
+  return reservations.filter((reservation) => {
+    const expiresAt = Date.parse(String(reservation.expiresAt || ""));
+    return Number.isFinite(expiresAt) && expiresAt > now;
+  });
+}
+
+function writeAssignmentReservations(reservations) {
+  fs.writeFileSync(
+    ASSIGNMENT_RESERVATIONS_FILE,
+    `${JSON.stringify(reservations, null, 2)}\n`,
+    "utf8",
+  );
 }
 
 function appendAssignmentEvent(event) {
@@ -337,19 +371,41 @@ async function assignArticleOptions(payload) {
     throw new Error("participantId and runId are required.");
   }
 
+  const testMode = isReadOnlyTestParticipant(participantId);
+
   return withAssignmentLock(() => {
     const articleMap = getArticleMap();
     const history = readAnnotationHistory();
-    const priorityCohort = readPriorityCohort(history, articleMap);
+    const priorityCohort = readPriorityCohort(history, articleMap, !testMode);
     const prioritySet = new Set(priorityCohort);
     const currentParticipant = participantKey(participantId);
+    const reservations = activeAssignmentReservations(readAssignmentReservations());
+    const existingReservation = reservations.find((reservation) => (
+      participantKey(reservation.participantId) === currentParticipant &&
+      String(reservation.runId || "") === runId &&
+      Number(reservation.round || 0) === round &&
+      articleMap.has(normalizeArticleId(reservation.row_id))
+    ));
+    const reservedAnnotators = new Map();
+    for (const reservation of reservations) {
+      const articleId = normalizeArticleId(reservation.row_id);
+      const annotator = participantKey(reservation.participantId);
+      if (!articleId || !annotator) continue;
+      if (!reservedAnnotators.has(articleId)) reservedAnnotators.set(articleId, new Set());
+      reservedAnnotators.get(articleId).add(annotator);
+    }
     const isEligible = (articleId) => {
       const annotators = history.get(articleId) || new Set();
+      const effectiveAnnotators = new Set([
+        ...annotators,
+        ...(reservedAnnotators.get(articleId) || new Set()),
+      ]);
       return (
         articleMap.has(articleId) &&
         annotators.size > 0 &&
         annotators.size < TARGET_ANNOTATIONS_PER_ARTICLE &&
-        !annotators.has(currentParticipant)
+        effectiveAnnotators.size < TARGET_ANNOTATIONS_PER_ARTICLE &&
+        (testMode || !effectiveAnnotators.has(currentParticipant))
       );
     };
     const priorityIds = priorityCohort.filter(isEligible);
@@ -357,30 +413,49 @@ async function assignArticleOptions(payload) {
       (articleId) => !prioritySet.has(articleId) && isEligible(articleId),
     );
     const candidateIds = [...priorityIds, ...remainingIds];
-    if (!candidateIds.length) {
+    let chosenArticleIds;
+    if (existingReservation && !testMode) {
+      chosenArticleIds = [normalizeArticleId(existingReservation.row_id)];
+    } else if (!candidateIds.length) {
       throw new Error("No eligible previously annotated articles remain for this participant.");
+    } else {
+      chosenArticleIds = [...candidateIds]
+        .sort(() => Math.random() - 0.5)
+        .sort((left, right) => {
+          const cohortDifference = Number(!prioritySet.has(left)) - Number(!prioritySet.has(right));
+          return cohortDifference || history.get(right).size - history.get(left).size;
+        })
+        .slice(0, ARTICLE_CHOICES_PER_ROUND);
     }
 
-    const chosenArticleIds = [...candidateIds]
-      .sort(() => Math.random() - 0.5)
-      .sort((left, right) => {
-        const cohortDifference = Number(!prioritySet.has(left)) - Number(!prioritySet.has(right));
-        return cohortDifference || history.get(right).size - history.get(left).size;
-      })
-      .slice(0, ARTICLE_CHOICES_PER_ROUND);
+    if (!testMode && !existingReservation) {
+      const now = new Date();
+      reservations.push({
+        participantId,
+        runId,
+        round,
+        row_id: chosenArticleIds[0],
+        createdAt: now.toISOString(),
+        expiresAt: new Date(now.getTime() + ASSIGNMENT_RESERVATION_MINUTES * 60000).toISOString(),
+      });
+      writeAssignmentReservations(reservations);
+    }
     const options = chosenArticleIds.map((articleId) => articleMap.get(articleId));
 
-    appendAssignmentEvent({
-      type: "shown_unselected",
-      participantId,
-      runId,
-      round,
-      row_ids: options.map((article) => article.row_id),
-    });
+    if (!testMode && !existingReservation) {
+      appendAssignmentEvent({
+        type: "assigned",
+        participantId,
+        runId,
+        round,
+        row_id: chosenArticleIds[0],
+      });
+    }
 
     return {
       ok: true,
-      status: "shown_unselected",
+      status: testMode ? "test" : "assigned",
+      testMode,
       round,
       options,
       eligibleArticleCount: candidateIds.length,
@@ -405,6 +480,16 @@ async function markArticleAnnotated(payload) {
     throw new Error("participantId, runId, and articleId are required.");
   }
 
+  if (isReadOnlyTestParticipant(participantId)) {
+    return {
+      ok: true,
+      status: "test",
+      testMode: true,
+      notSaved: true,
+      row_id: articleId,
+    };
+  }
+
   return withAssignmentLock(() => {
     appendAssignmentEvent({
       type: "annotated",
@@ -413,6 +498,13 @@ async function markArticleAnnotated(payload) {
       round,
       row_id: articleId,
     });
+    const reservations = activeAssignmentReservations(readAssignmentReservations()).filter(
+      (reservation) => !(
+        participantKey(reservation.participantId) === participantKey(participantId) &&
+        normalizeArticleId(reservation.row_id) === articleId
+      ),
+    );
+    writeAssignmentReservations(reservations);
 
     return {
       ok: true,
@@ -482,6 +574,17 @@ async function appendOnlyAnnotationRecords(record) {
 }
 
 async function saveAnnotationSnapshot(payload) {
+  const participantId = String(payload.participantId || "").trim();
+  if (isReadOnlyTestParticipant(participantId)) {
+    return {
+      ok: true,
+      status: "test",
+      testMode: true,
+      notSaved: true,
+      message: "Read-only test participant; annotation data was not saved.",
+    };
+  }
+
   ensureStorage();
 
   const storageKey = makeStorageKey(payload);
