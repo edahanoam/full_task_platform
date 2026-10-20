@@ -114,6 +114,17 @@ class RepeatAssignmentTests(unittest.TestCase):
         self.assertFalse(server.ASSIGNMENT_RESERVATIONS_FILE.exists())
         self.assertFalse(server.ASSIGNMENT_EVENTS_FILE.exists())
 
+        next_result = server.assign_article_options({
+            "participantId": "noam",
+            "runId": "test-run",
+            "round": 2,
+            "excludedRowIds": [result["options"][0]["row_id"]],
+        })
+        self.assertNotEqual(
+            result["options"][0]["row_id"],
+            next_result["options"][0]["row_id"],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

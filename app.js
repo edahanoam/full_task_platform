@@ -631,6 +631,7 @@ async function fetchArticleOptions() {
       runId: state.runId,
       round: state.finalizedArticles.length + 1,
       count: ARTICLE_CHOICES_PER_ROUND,
+      excludedRowIds: state.finalizedArticles.map((article) => article.row_id),
     }),
   });
 

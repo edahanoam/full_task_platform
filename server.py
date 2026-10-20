@@ -320,6 +320,10 @@ def assign_article_options(payload):
     participant_id = str(payload.get("participantId") or "").strip()
     run_id = str(payload.get("runId") or "").strip()
     round_number = int(payload.get("round") or 1)
+    excluded_article_ids = {
+        normalize_article_id(article_id)
+        for article_id in (payload.get("excludedRowIds") or [])
+    }
 
     if not participant_id or not run_id:
         raise ValueError("participantId and runId are required.")
@@ -354,6 +358,7 @@ def assign_article_options(payload):
             effective_annotators = annotators | reserved_annotators.get(article_id, set())
             return (
                 article_id in article_map
+                and article_id not in excluded_article_ids
                 and 0 < len(annotators) < TARGET_ANNOTATIONS_PER_ARTICLE
                 and len(effective_annotators) < TARGET_ANNOTATIONS_PER_ARTICLE
                 and (test_mode or current_participant not in effective_annotators)

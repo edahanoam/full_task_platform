@@ -366,6 +366,7 @@ async function assignArticleOptions(payload) {
   const participantId = String(payload.participantId || "").trim();
   const runId = String(payload.runId || "").trim();
   const round = Number(payload.round || 1);
+  const excludedArticleIds = new Set((payload.excludedRowIds || []).map(normalizeArticleId));
 
   if (!participantId || !runId) {
     throw new Error("participantId and runId are required.");
@@ -402,6 +403,7 @@ async function assignArticleOptions(payload) {
       ]);
       return (
         articleMap.has(articleId) &&
+        !excludedArticleIds.has(articleId) &&
         annotators.size > 0 &&
         annotators.size < TARGET_ANNOTATIONS_PER_ARTICLE &&
         effectiveAnnotators.size < TARGET_ANNOTATIONS_PER_ARTICLE &&
