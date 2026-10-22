@@ -683,6 +683,8 @@ function chooseArticle(rowId) {
   state.currentChoiceOptions = [];
   state.currentAnnotations = [];
 
+  elements.guidelinesScreen?.classList.add("is-hidden");
+  elements.platformScreen?.classList.add("is-hidden");
   elements.choiceScreen?.classList.add("is-hidden");
   elements.taskScreen?.classList.remove("is-hidden");
   loadCurrentArticle();
